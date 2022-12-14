@@ -17,6 +17,10 @@
 			"TargetAllowList": [
 				"Editor"
 			]
+		},
+		{
+			"Name":"GameDevToolbox",
+			"Enabled":true
 		}
 	]
 }

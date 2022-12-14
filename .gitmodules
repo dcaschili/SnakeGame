@@ -1,0 +1,3 @@
+[submodule "SnakeGame/Plugins/GameDevToolbox"]
+	path = SnakeGame/Plugins/GameDevToolbox
+	url = https://github.com/dcaschili/GameDevToolbox.git
