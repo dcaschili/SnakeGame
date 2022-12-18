@@ -11,5 +11,7 @@ public class SnakeGameEditorTarget : TargetRules
 		DefaultBuildSettings = BuildSettingsVersion.V2;
 
 		ExtraModuleNames.AddRange( new string[] { "SnakeGame" } );
-	}
+
+        IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
+    }
 }
