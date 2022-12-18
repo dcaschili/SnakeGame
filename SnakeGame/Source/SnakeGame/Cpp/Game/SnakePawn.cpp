@@ -8,11 +8,16 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "SnakeLog.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 ASnakePawn::ASnakePawn()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	bUseControllerRotationYaw = true;
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationRoll = false;
 
 	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComp"));
 	RootComponent = StaticMeshComp;
@@ -22,7 +27,7 @@ ASnakePawn::ASnakePawn()
 	{
 		SpringArmComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
 		SpringArmComp->bInheritPitch = false;
-		SpringArmComp->bInheritRoll = false;
+		SpringArmComp->bInheritYaw = false;
 		SpringArmComp->bInheritRoll = false;
 		SpringArmComp->TargetArmLength = 800.0f;
 	}
@@ -30,7 +35,7 @@ ASnakePawn::ASnakePawn()
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	if (CameraComp)
 	{
-		CameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);
+		CameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepWorldTransform);
 	}
 }
 
@@ -41,6 +46,12 @@ void ASnakePawn::Tick(float DeltaSeconds)
 	FVector NewPos = GetActorLocation();
 	NewPos += MoveDirection * DeltaSeconds * MaxMovementSpeed;
 	SetActorLocation(NewPos, true);
+
+	if (Controller)
+	{
+		FRotator FacingDir = UKismetMathLibrary::FindLookAtRotation(NewPos, NewPos + MoveDirection * 500.0f);
+		Controller->SetControlRotation(FacingDir);
+	}
 }
 
 void ASnakePawn::BeginPlay()
