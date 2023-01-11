@@ -49,4 +49,9 @@ private:
 	float MaxMovementSpeed = 500.0f;
 
 	FVector MoveDirection = FVector::RightVector;
+	bool bDirectionChanged = false;
+
+#if !UE_BUILD_SHIPPING
+	FTimerHandle SnakePositionDebuggerTimerHandle{};
+#endif
 };

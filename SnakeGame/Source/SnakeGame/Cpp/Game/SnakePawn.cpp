@@ -9,7 +9,23 @@
 #include "EnhancedInputSubsystems.h"
 #include "SnakeLog.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "GameFramework/PlayerController.h"
+#include "Engine/LocalPlayer.h"
+#include "TimerManager.h"
 
+
+#if !UE_BUILD_SHIPPING
+#include "DrawDebugHelpers.h"
+#include "Utils/GDTCDebugFunctionLibrary.h"
+
+static TAutoConsoleVariable<bool> CVarSnakePositionDebug(
+	TEXT("Snake.EnableSnakePositionDebug"),
+	false,
+	TEXT("Enable the snake position debugger:\n")
+	TEXT("true: draw a sphere on the previous position.\n")
+	TEXT("false: disable debugger.\n"),
+	ECVF_Cheat);
+#endif // !UE_BUILD_SHIPPING
 
 ASnakePawn::ASnakePawn()
 {
@@ -25,7 +41,7 @@ ASnakePawn::ASnakePawn()
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
 	if (SpringArmComp)
 	{
-		SpringArmComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
+		SpringArmComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 		SpringArmComp->bInheritPitch = false;
 		SpringArmComp->bInheritYaw = false;
 		SpringArmComp->bInheritRoll = false;
@@ -35,7 +51,7 @@ ASnakePawn::ASnakePawn()
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	if (CameraComp)
 	{
-		CameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepWorldTransform);
+		CameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 }
 
@@ -43,8 +59,60 @@ void ASnakePawn::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	FVector NewPos = GetActorLocation();
-	NewPos += MoveDirection * DeltaSeconds * MaxMovementSpeed;
+#if !UE_BUILD_SHIPPING
+	if (CVarSnakePositionDebug.GetValueOnGameThread())
+	{
+		// Check if a timer is already active.
+		if (!SnakePositionDebuggerTimerHandle.IsValid())
+		{
+			GetWorldTimerManager().SetTimer(SnakePositionDebuggerTimerHandle, [this]() {
+				FVector CurrentPos = GetActorLocation();
+				CurrentPos.Z = 0.0f;
+				DrawDebugSphere(GetWorld(), CurrentPos, 50.0f, 32, FColor::Red, true, -1.0f);
+				}, 0.25f, true);
+		}
+	}
+	else
+	{
+		// Disable draw debug if it is active.
+		if (SnakePositionDebuggerTimerHandle.IsValid())
+		{
+			GetWorldTimerManager().ClearTimer(SnakePositionDebuggerTimerHandle);
+		}
+	}
+#endif // !UE_BUILD_SHIPPING
+
+
+	const FVector CurrentPos = GetActorLocation();
+	FVector NewPos = CurrentPos + (MoveDirection * DeltaSeconds * MaxMovementSpeed);
+	// Center in tile
+	if (bDirectionChanged)
+	{
+		bDirectionChanged = false;
+		if (FMath::IsNearlyZero(MoveDirection.X))
+		{
+			// Center on the vertical coordinate
+			int32 XValue = FMath::RoundToInt32(CurrentPos.X);
+			// Take the current tile top left coordinate.
+			int32 CurrentTileXValue = XValue - (XValue % 100);
+			NewPos.X = CurrentTileXValue + 50;
+		}
+		else if (FMath::IsNearlyZero(MoveDirection.Y))
+		{
+			// Center vertically
+			int32 YValue = FMath::RoundToInt32(CurrentPos.Y);
+			// Take the current tile top left coordinate.
+			int32 CurrentTileYValue = YValue - (YValue % 100);
+			NewPos.Y = CurrentTileYValue + 50.0f;
+		}
+		else
+		{
+			// Something wrong in the movement direction setup
+			UE_LOG(SnakeLogCategoryGame, Warning, TEXT("Something went wrong in the MovementDirection setup: %s"), *MoveDirection.ToString());
+			ensure(false);
+		}
+	}
+
 	SetActorLocation(NewPos, true);
 
 	if (Controller)
@@ -76,7 +144,6 @@ void ASnakePawn::BeginPlay()
 		UE_LOG(SnakeLogCategoryGame, Warning, TEXT("Missing InputMapping Context"));
 		ensure(false);
 	}
-
 }
 
 void ASnakePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -118,6 +185,7 @@ void ASnakePawn::HandleMoveRightIA(const FInputActionInstance& InputActionInstan
 		{
 			const float Amount = InputActionInstance.GetValue().Get<float>();
 			MoveDirection = FVector(0.0f, Amount, 0.0f);
+			bDirectionChanged = true;
 		}
 	}
 }
@@ -131,6 +199,7 @@ void ASnakePawn::HandleMoveUpIA(const FInputActionInstance& InputActionInstance)
 		{
 			const float Amount = InputActionInstance.GetValue().Get<float>();
 			MoveDirection = FVector(Amount, 0.0f, 0.0f);
+			bDirectionChanged = true;
 		}
 	}
 }
