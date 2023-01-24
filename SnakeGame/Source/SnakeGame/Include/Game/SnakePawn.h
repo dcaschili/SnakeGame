@@ -48,8 +48,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Movement")
 	float MaxMovementSpeed = 500.0f;
 
-	FVector MoveDirection = FVector::RightVector;
-	bool bDirectionChanged = false;
+	FVector				MoveDirection = FVector::RightVector;
+	TOptional<FVector>	PreviousDirection{};
+	bool				bDirectionChanged = false;
 
 #if !UE_BUILD_SHIPPING
 	FTimerHandle SnakePositionDebuggerTimerHandle{};

@@ -46,6 +46,8 @@ ASnakePawn::ASnakePawn()
 		SpringArmComp->bInheritYaw = false;
 		SpringArmComp->bInheritRoll = false;
 		SpringArmComp->TargetArmLength = 800.0f;
+		// Needed to reduce the abrupt change of direction due to the "snap to tile" movement
+		SpringArmComp->bEnableCameraLag = true;
 	}
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
@@ -68,8 +70,8 @@ void ASnakePawn::Tick(float DeltaSeconds)
 			GetWorldTimerManager().SetTimer(SnakePositionDebuggerTimerHandle, [this]() {
 				FVector CurrentPos = GetActorLocation();
 				CurrentPos.Z = 0.0f;
-				DrawDebugSphere(GetWorld(), CurrentPos, 50.0f, 32, FColor::Red, true, -1.0f);
-				}, 0.25f, true);
+				DrawDebugSphere(GetWorld(), CurrentPos, 50.0f, 32, FColor::Red, false, 2.0f);
+				}, 0.05f, true);
 		}
 	}
 	else
@@ -85,25 +87,47 @@ void ASnakePawn::Tick(float DeltaSeconds)
 
 	const FVector CurrentPos = GetActorLocation();
 	FVector NewPos = CurrentPos + (MoveDirection * DeltaSeconds * MaxMovementSpeed);
+			
 	// Center in tile
-	if (bDirectionChanged)
+	if (bDirectionChanged && PreviousDirection.IsSet())
 	{
 		bDirectionChanged = false;
+
+		// Avoid sharp angle during direction change.
+		const FVector PreviousDir = PreviousDirection.GetValue();
+		FVector NewDir = MoveDirection + PreviousDir;
+		NewDir.Normalize();
+		NewPos = CurrentPos + (NewDir * DeltaSeconds * MaxMovementSpeed);
+
 		if (FMath::IsNearlyZero(MoveDirection.X))
 		{
+			int32 TmpX = FMath::Abs(CurrentPos.X);
+			int32 SignX = FMath::Sign(CurrentPos.X);
+
 			// Center on the vertical coordinate
-			int32 XValue = FMath::RoundToInt32(CurrentPos.X);
-			// Take the current tile top left coordinate.
-			int32 CurrentTileXValue = XValue - (XValue % 100);
-			NewPos.X = CurrentTileXValue + 50;
+			/*
+				Take the current tile top left coordinate to avoid "jump to next tile" effect.
+				If the coordinate is > 0.5, the rounding will move to the next tile.
+			*/
+			int32 XValue = FMath::Floor(TmpX);
+			// TODO: 100 must be a config value, move to game constants data asset.
+			int32 CurrentTileXValue = XValue - (XValue % 100) + 50;
+			//NewPos.X = CurrentTileXValue + 50 * FMath::Sign(NewPos.X);
+			//NewPos.X = CurrentTileXValue + 50;
+			NewPos.X = CurrentTileXValue * SignX;
 		}
 		else if (FMath::IsNearlyZero(MoveDirection.Y))
 		{
-			// Center vertically
-			int32 YValue = FMath::RoundToInt32(CurrentPos.Y);
+			int32 TmpY = FMath::Abs(CurrentPos.Y);
+			int32 SignY = FMath::Sign(CurrentPos.Y);
+
+			// Center on the horizontal coordinate
+			int32 YValue = FMath::Floor(TmpY);
 			// Take the current tile top left coordinate.
-			int32 CurrentTileYValue = YValue - (YValue % 100);
-			NewPos.Y = CurrentTileYValue + 50.0f;
+			// TODO: 100 must be a config value, move to game constants data asset.
+			int32 CurrentTileYValue = YValue - (YValue % 100) + 50;
+			//NewPos.Y = CurrentTileYValue + 50 * FMath::Sign(NewPos.Y);
+			NewPos.Y = CurrentTileYValue * SignY;
 		}
 		else
 		{
@@ -184,6 +208,7 @@ void ASnakePawn::HandleMoveRightIA(const FInputActionInstance& InputActionInstan
 		if (FMath::IsNearlyZero(MoveDirection.Y))
 		{
 			const float Amount = InputActionInstance.GetValue().Get<float>();
+			PreviousDirection = MoveDirection;
 			MoveDirection = FVector(0.0f, Amount, 0.0f);
 			bDirectionChanged = true;
 		}
@@ -198,6 +223,7 @@ void ASnakePawn::HandleMoveUpIA(const FInputActionInstance& InputActionInstance)
 		if (FMath::IsNearlyZero(MoveDirection.X))
 		{
 			const float Amount = InputActionInstance.GetValue().Get<float>();
+			PreviousDirection = MoveDirection;
 			MoveDirection = FVector(Amount, 0.0f, 0.0f);
 			bDirectionChanged = true;
 		}
