@@ -51,6 +51,8 @@ private:
 	FVector				MoveDirection = FVector::RightVector;
 	TOptional<FVector>	PreviousDirection{};
 	bool				bDirectionChanged = false;
+	int32				TileSize = 0;
+	int32				HalfTileSize = 0;
 
 #if !UE_BUILD_SHIPPING
 	FTimerHandle SnakePositionDebuggerTimerHandle{};

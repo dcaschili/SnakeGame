@@ -9,9 +9,12 @@
 #include "EnhancedInputSubsystems.h"
 #include "SnakeLog.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/LocalPlayer.h"
 #include "TimerManager.h"
+#include "SnakeGameInstance.h"
+#include "Data/GameConstants.h"
 
 
 #if !UE_BUILD_SHIPPING
@@ -111,7 +114,7 @@ void ASnakePawn::Tick(float DeltaSeconds)
 			*/
 			int32 XValue = FMath::Floor(TmpX);
 			// TODO: 100 must be a config value, move to game constants data asset.
-			int32 CurrentTileXValue = XValue - (XValue % 100) + 50;
+			int32 CurrentTileXValue = XValue - (XValue % TileSize) + HalfTileSize;
 			//NewPos.X = CurrentTileXValue + 50 * FMath::Sign(NewPos.X);
 			//NewPos.X = CurrentTileXValue + 50;
 			NewPos.X = CurrentTileXValue * SignX;
@@ -125,7 +128,7 @@ void ASnakePawn::Tick(float DeltaSeconds)
 			int32 YValue = FMath::Floor(TmpY);
 			// Take the current tile top left coordinate.
 			// TODO: 100 must be a config value, move to game constants data asset.
-			int32 CurrentTileYValue = YValue - (YValue % 100) + 50;
+			int32 CurrentTileYValue = YValue - (YValue % TileSize) + HalfTileSize;
 			//NewPos.Y = CurrentTileYValue + 50 * FMath::Sign(NewPos.Y);
 			NewPos.Y = CurrentTileYValue * SignY;
 		}
@@ -150,6 +153,7 @@ void ASnakePawn::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Setup input
 	if (InputMappingContext)
 	{
 		APlayerController* PC = Cast<APlayerController>(Controller);
@@ -168,6 +172,13 @@ void ASnakePawn::BeginPlay()
 		UE_LOG(SnakeLogCategoryGame, Warning, TEXT("Missing InputMapping Context"));
 		ensure(false);
 	}
+
+	const USnakeGameInstance* const GameInstance = Cast<USnakeGameInstance>(UGameplayStatics::GetGameInstance(this));
+	check(GameInstance);
+	const UGameConstants* const GameConstants = GameInstance->GetGameConstants();
+	check(GameConstants);
+	TileSize = GameConstants->TileSize;
+	HalfTileSize = FMath::RoundToInt32(TileSize / 2.0f);
 }
 
 void ASnakePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
