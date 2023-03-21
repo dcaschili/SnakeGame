@@ -10,7 +10,7 @@ class SNAKEGAME_API AMapManager : public AActor
     GENERATED_BODY()
 public:
 
-	bool		GetRandomFreeMapLocation(FIntVector2& OutPos) const;
+	bool		GetRandomFreeMapLocation(int32& OutRow, int32& OutCol) const;
 
 	/**
 		Check whether the tile position is free or empty

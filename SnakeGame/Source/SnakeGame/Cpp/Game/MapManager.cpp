@@ -4,7 +4,7 @@
 #include "Math/IntVector.h"
 #include "SnakeLog.h"
 
-bool AMapManager::GetRandomFreeMapLocation(FIntVector2& OutPos) const
+bool AMapManager::GetRandomFreeMapLocation(int32& OutRow, int32& OutCol) const
 {
 	if (!HasFreeLocation())
 	{
@@ -12,17 +12,16 @@ bool AMapManager::GetRandomFreeMapLocation(FIntVector2& OutPos) const
 		ensure(false);
 		return false;
 	}
-	
+
 	while (true)
 	{
 		int32 Row = FMath::RandRange(0, GetMapSideLength());
 		int32 Col = FMath::RandRange(0, GetMapSideLength());
 
-		FIntVector2 RandPos{ Row, Col };
-
-		if (IsMapLocationFree(RandPos))
+		if (IsMapLocationFree(Row, Col))
 		{
-			OutPos = RandPos;
+			OutRow = Row;
+			OutCol = Col;
 			return true;
 		}
 	}
