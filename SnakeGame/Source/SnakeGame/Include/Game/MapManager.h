@@ -9,8 +9,10 @@ class SNAKEGAME_API AMapManager : public AActor
 {
     GENERATED_BODY()
 public:
+	
+	static AMapManager* GetMapManager(const UObject* InWorldContextObject);
 
-	bool		GetRandomFreeMapLocation(int32& OutRow, int32& OutCol) const;
+	bool		GetRandomFreeMapLocation(FVector& OutWorldPosition) const;
 
 	/**
 		Check whether the tile position is free or empty
@@ -25,6 +27,7 @@ protected:
 private:	
 	bool	HasFreeLocation() const;
 	int32	GetMapSideLength() const;
+	int32	GetMapTileSize() const;
 	int32	GetItemsCountInTile(int32 Row, int32 Column) const;
 
 	void	InitializeTileItemsCount();

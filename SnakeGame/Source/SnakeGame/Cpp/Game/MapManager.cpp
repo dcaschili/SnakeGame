@@ -3,8 +3,17 @@
 #include "Data/GameConstants.h"
 #include "Math/IntVector.h"
 #include "SnakeLog.h"
+#include "Kismet/GameplayStatics.h"
+#include "SnakeGameGameModeBase.h"
 
-bool AMapManager::GetRandomFreeMapLocation(int32& OutRow, int32& OutCol) const
+AMapManager* AMapManager::GetMapManager(const UObject* InWorldContextObject)
+{
+	ASnakeGameGameModeBase* GameMode = Cast<ASnakeGameGameModeBase>(UGameplayStatics::GetGameMode(InWorldContextObject));
+	// GameMode available only on server.
+	return GameMode ? GameMode->GetMapManager() : nullptr;
+}
+
+bool AMapManager::GetRandomFreeMapLocation(FVector& OutWorldPosition) const
 {
 	if (!HasFreeLocation())
 	{
@@ -15,13 +24,20 @@ bool AMapManager::GetRandomFreeMapLocation(int32& OutRow, int32& OutCol) const
 
 	while (true)
 	{
-		int32 Row = FMath::RandRange(0, GetMapSideLength());
-		int32 Col = FMath::RandRange(0, GetMapSideLength());
+		int32 Row = FMath::RandRange(0, GetMapSideLength() - 1);
+		int32 Col = FMath::RandRange(0, GetMapSideLength() - 1);
 
 		if (IsMapLocationFree(Row, Col))
 		{
-			OutRow = Row;
-			OutCol = Col;
+			const float HalfMapSide = GetMapSideLength() / 2.0f;
+			const float HalfTileSize = GetMapTileSize() / 2.0f;
+
+			// Considering map centered at the origin.
+			float RowWorldMap = ((Row - HalfMapSide) * GetMapTileSize()) + HalfTileSize;
+			float ColWorldMap = ((Col - HalfMapSide) * GetMapTileSize()) + HalfTileSize;
+			OutWorldPosition.X = RowWorldMap;
+			OutWorldPosition.Y = ColWorldMap;
+			OutWorldPosition.Z = 0.0f;
 			return true;
 		}
 	}
@@ -61,6 +77,13 @@ int32 AMapManager::GetMapSideLength() const
 	const UGameConstants* GameConstants = UGameConstants::GetGameConstants(this);
 	check(GameConstants);
 	return GameConstants->MapSideLength;
+}
+
+int32 AMapManager::GetMapTileSize() const
+{
+	const UGameConstants* GameConstants = UGameConstants::GetGameConstants(this);
+	check(GameConstants);
+	return GameConstants->TileSize;
 }
 
 int32 AMapManager::GetItemsCountInTile(int32 Row, int32 Column) const
