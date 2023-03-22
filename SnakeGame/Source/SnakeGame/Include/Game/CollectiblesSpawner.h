@@ -26,10 +26,9 @@ protected:
 
 private:
 	UFUNCTION()
-	void HandleCollectibleDestroyed();
+	void HandleCollectibleCollected();
 
 	void SpawnCollectible();
 
-	UPROPERTY()
-	TObjectPtr<ACollectibleActor> ActiveCollectibleActor{};
+	TWeakObjectPtr<ACollectibleActor> ActiveCollectibleActor{};
 };

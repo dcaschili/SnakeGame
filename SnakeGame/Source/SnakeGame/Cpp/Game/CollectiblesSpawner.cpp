@@ -25,8 +25,13 @@ void ACollectiblesSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void ACollectiblesSpawner::HandleCollectibleDestroyed()
+void ACollectiblesSpawner::HandleCollectibleCollected()
 {
+	if (ActiveCollectibleActor.IsValid())
+	{
+		ActiveCollectibleActor->OnCollectedActor.RemoveDynamic(this, &ThisClass::HandleCollectibleCollected);
+	}
+	SpawnCollectible();
 }
 
 void ACollectiblesSpawner::SpawnCollectible()
@@ -49,8 +54,11 @@ void ACollectiblesSpawner::SpawnCollectible()
 
 
 				ActiveCollectibleActor = GetWorld()->SpawnActor<ACollectibleActor>(CollectibleClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
+				if (ensure(ActiveCollectibleActor.IsValid()))
+				{
+					ActiveCollectibleActor->OnCollectedActor.AddUniqueDynamic(this, &ThisClass::HandleCollectibleCollected);
+				}
 			}
-
 		}
 	}
 }
