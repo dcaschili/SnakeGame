@@ -5,7 +5,7 @@
 #include "Engine/World.h"
 #include "SnakeLog.h"
 #include "SnakeGameGameModeBase.h"
-#include "Game/MapManager.h"
+#include "Game/Map/MapManager.h"
 
 ACollectiblesSpawner::ACollectiblesSpawner()
 	: Super()

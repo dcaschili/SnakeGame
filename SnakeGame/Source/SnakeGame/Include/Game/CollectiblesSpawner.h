@@ -21,8 +21,6 @@ protected:
 	TSubclassOf<ACollectibleActor> CollectibleClass{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Spawning", meta=(MinUI = 0.0f, ClampMinUI = 0.0f))
 	float SpawningStartingHeight = 40.0f;
-	
-
 
 private:
 	UFUNCTION()

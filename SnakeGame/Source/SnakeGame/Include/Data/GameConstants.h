@@ -19,8 +19,8 @@ public:
     int32 TileSize = 100;
 
 	/**
-		Map side length in Unreal units.
+		Number of tiles that composes a side of the map.
 	*/
 	UPROPERTY(EditDefaultsOnly, Category = "Map", meta = (ClampMin = "5", UIMin = "5"))
-	int32 MapSideLength = 10;
+	int32 MapSideTilesCount = 10;
 };

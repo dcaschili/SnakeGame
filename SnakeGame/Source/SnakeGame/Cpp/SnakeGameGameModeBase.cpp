@@ -1,6 +1,6 @@
 #include "SnakeGameGameModeBase.h"
 
-#include "Game/MapManager.h"
+#include "Game/Map/MapManager.h"
 #include "SnakeLog.h"
 #include "Game/CollectiblesSpawner.h"
 #include "Engine/World.h"
