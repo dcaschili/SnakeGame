@@ -40,6 +40,8 @@ ASnakePawn::ASnakePawn()
 
 	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComp"));
 	RootComponent = StaticMeshComp;
+	StaticMeshComp->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
+	StaticMeshComp->CastShadow = false;
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
 	if (SpringArmComp)
