@@ -4,6 +4,7 @@
 
 #include "CollectibleActor.generated.h"
 
+class UMapOccupancyComponent;
 class UStaticMeshComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCollectedActorEvent);
@@ -20,6 +21,8 @@ public:
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
 
 private:
-	UPROPERTY(VisibleDefaultsOnly, Category = "Mesh")
+	UPROPERTY(VisibleDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UStaticMeshComponent> StaticMeshComp{};
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
+	TObjectPtr<UMapOccupancyComponent> MapOccupancyComponent{};
 };
