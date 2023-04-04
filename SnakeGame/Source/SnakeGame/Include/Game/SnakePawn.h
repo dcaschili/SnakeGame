@@ -11,6 +11,8 @@ class UCameraComponent;
 class UInputAction;
 class UInputMappingContext;
 class UInputComponent;
+class UEndGameCollisionDetectionComponent;
+class UMapOccupancyComponent;
 
 UCLASS()
 class SNAKEGAME_API ASnakePawn : public APawn
@@ -37,6 +39,10 @@ private:
 	TObjectPtr<USpringArmComponent> SpringArmComp{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UCameraComponent> CameraComp{};
+	UPROPERTY(VisibleAnywhere, Category = "Snake|Components")
+	TObjectPtr<UEndGameCollisionDetectionComponent> EndGameCollisionComponent{};
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
+	TObjectPtr<UMapOccupancyComponent> MapOccupancyComponent{};
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Inputs")
 	TObjectPtr<UInputAction> MoveRightIA{};

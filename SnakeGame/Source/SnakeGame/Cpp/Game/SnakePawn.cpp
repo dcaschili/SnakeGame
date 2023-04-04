@@ -15,6 +15,8 @@
 #include "TimerManager.h"
 #include "SnakeGameInstance.h"
 #include "Data/GameConstants.h"
+#include "Game/EndGameCollisionDetectionComponent.h"
+#include "Game/Map/MapOccupancyComponent.h"
 
 
 #if !UE_BUILD_SHIPPING
@@ -52,7 +54,8 @@ ASnakePawn::ASnakePawn()
 		SpringArmComp->bInheritRoll = false;
 		SpringArmComp->TargetArmLength = 800.0f;
 		// Needed to reduce the abrupt change of direction due to the "snap to tile" movement
-		SpringArmComp->bEnableCameraLag = true;
+		// TODO: Do i need it with fixed camera?
+		// SpringArmComp->bEnableCameraLag = true;
 	}
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
@@ -60,6 +63,9 @@ ASnakePawn::ASnakePawn()
 	{
 		CameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);
 	}
+
+	EndGameCollisionComponent = CreateDefaultSubobject<UEndGameCollisionDetectionComponent>(TEXT("EndGameCollisionDetectionComponent"));
+	MapOccupancyComponent = CreateDefaultSubobject<UMapOccupancyComponent>(TEXT("MapOccupancyComponent"));
 }
 
 void ASnakePawn::Tick(float DeltaSeconds)

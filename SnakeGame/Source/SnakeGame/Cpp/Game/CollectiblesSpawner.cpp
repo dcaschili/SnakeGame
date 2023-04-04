@@ -46,6 +46,20 @@ void ACollectiblesSpawner::SpawnCollectible()
 			FVector SpawnLocation{};
 			if (ensure(MapManager->GetRandomFreeMapLocation(SpawnLocation)))
 			{
+				/*
+					Ensures that the previous position can't be used as new location
+				*/
+				if (ActiveCollectibleActor.IsValid())
+				{
+					const FVector PreviousCollectibleLocation = ActiveCollectibleActor->GetActorLocation();
+
+					while ((SpawnLocation - PreviousCollectibleLocation).IsNearlyZero())
+					{
+						UE_LOG(SnakeLogCategorySpawner, Verbose, TEXT("Generated a new collectible position equals to the previous one, continuing generating until a different position is obtained!"));
+						ensure(MapManager->GetRandomFreeMapLocation(SpawnLocation));
+					}
+				}
+
 				SpawnLocation.Z = SpawningStartingHeight;
 				UE_LOG(SnakeLogCategorySpawner, Verbose, TEXT("Spawned collectible at position %s"), *SpawnLocation.ToString());
 
