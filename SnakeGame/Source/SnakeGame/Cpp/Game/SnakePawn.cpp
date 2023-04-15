@@ -95,58 +95,122 @@ void ASnakePawn::Tick(float DeltaSeconds)
 	}
 #endif // !UE_BUILD_SHIPPING
 
+	FVector CurrentPos = GetActorLocation();
 
-	const FVector CurrentPos = GetActorLocation();
+	if (PendingMoveDirection.IsSet())
+	{
+		// Check if the snake is near the center of the tile to allow for the change in direction
+
+		// Convert to int
+		FIntVector2 IntCurrentPos{};
+		IntCurrentPos.X = FMath::RoundToInt(CurrentPos.X);
+		IntCurrentPos.Y = FMath::RoundToInt(CurrentPos.Y);
+
+		// Get position within tile sizes [0, TileSize]
+		FIntVector2 TileSizeCurrentPos{};
+		TileSizeCurrentPos.X = FMath::Abs(IntCurrentPos.X) % TileSize;
+		TileSizeCurrentPos.Y = FMath::Abs(IntCurrentPos.Y) % TileSize;
+
+		FVector ToPointInTile{};
+		ToPointInTile.X = TileSizeCurrentPos.X - HalfTileSize;
+		ToPointInTile.Y = TileSizeCurrentPos.Y - HalfTileSize;
+		ToPointInTile.Z = 0.0f;
+
+		// If this is basically the center of the tile, allow the change in direction. 
+		// Otherwise let's proceed in this same direction until we reach a center.	
+		check(DistanceFromTileCenterTolerance > 0.0f);
+		if ((ToPointInTile).IsNearlyZero(DistanceFromTileCenterTolerance))
+		{
+			MoveDirection = PendingMoveDirection.GetValue();
+			PendingMoveDirection.Reset();
+
+			if (FMath::IsNearlyZero(MoveDirection.X))
+			{
+				int32 TmpX = FMath::Abs(CurrentPos.X);
+				int32 SignX = FMath::Sign(CurrentPos.X);
+
+				// Center on the vertical coordinate
+				/*
+					Take the current tile top left coordinate to avoid "jump to next tile" effect.
+					If the coordinate is > 0.5, the rounding will move to the next tile.
+				*/
+				int32 XValue = FMath::Floor(TmpX);
+				int32 CurrentTileXValue = XValue - (XValue % TileSize) + HalfTileSize;
+				//NewPos.X = CurrentTileXValue + 50 * FMath::Sign(NewPos.X);
+				//NewPos.X = CurrentTileXValue + 50;
+				CurrentPos.X = CurrentTileXValue * SignX;
+			}
+			else if (FMath::IsNearlyZero(MoveDirection.Y))
+			{
+				int32 TmpY = FMath::Abs(CurrentPos.Y);
+				int32 SignY = FMath::Sign(CurrentPos.Y);
+
+				// Center on the horizontal coordinate
+				int32 YValue = FMath::Floor(TmpY);
+				// Take the current tile top left coordinate.
+				// TODO: 100 must be a config value, move to game constants data asset.
+				int32 CurrentTileYValue = YValue - (YValue % TileSize) + HalfTileSize;
+				//NewPos.Y = CurrentTileYValue + 50 * FMath::Sign(NewPos.Y);
+				CurrentPos.Y = CurrentTileYValue * SignY;
+			}
+			else
+			{
+				// Something wrong in the movement direction setup
+				UE_LOG(SnakeLogCategoryGame, Warning, TEXT("Something went wrong in the MovementDirection setup: %s"), *MoveDirection.ToString());
+				ensure(false);
+			}
+		}
+	}
+	
 	FVector NewPos = CurrentPos + (MoveDirection * DeltaSeconds * MaxMovementSpeed);
 			
 	// Center in tile
-	if (bDirectionChanged && PreviousDirection.IsSet())
-	{
-		bDirectionChanged = false;
+	//if (bDirectionChanged && PreviousDirection.IsSet())
+	//{
+	//	bDirectionChanged = false;
 
-		// Avoid sharp angle during direction change.
-		const FVector PreviousDir = PreviousDirection.GetValue();
-		FVector NewDir = MoveDirection + PreviousDir;
-		NewDir.Normalize();
-		NewPos = CurrentPos + (NewDir * DeltaSeconds * MaxMovementSpeed);
+	//	// Avoid sharp angle during direction change.
+	//	const FVector PreviousDir = PreviousDirection.GetValue();
+	//	FVector NewDir = MoveDirection + PreviousDir;
+	//	NewDir.Normalize();
+	//	NewPos = CurrentPos + (NewDir * DeltaSeconds * MaxMovementSpeed);
 
-		if (FMath::IsNearlyZero(MoveDirection.X))
-		{
-			int32 TmpX = FMath::Abs(CurrentPos.X);
-			int32 SignX = FMath::Sign(CurrentPos.X);
+	//	if (FMath::IsNearlyZero(MoveDirection.X))
+	//	{
+	//		int32 TmpX = FMath::Abs(CurrentPos.X);
+	//		int32 SignX = FMath::Sign(CurrentPos.X);
 
-			// Center on the vertical coordinate
-			/*
-				Take the current tile top left coordinate to avoid "jump to next tile" effect.
-				If the coordinate is > 0.5, the rounding will move to the next tile.
-			*/
-			int32 XValue = FMath::Floor(TmpX);
-			// TODO: 100 must be a config value, move to game constants data asset.
-			int32 CurrentTileXValue = XValue - (XValue % TileSize) + HalfTileSize;
-			//NewPos.X = CurrentTileXValue + 50 * FMath::Sign(NewPos.X);
-			//NewPos.X = CurrentTileXValue + 50;
-			NewPos.X = CurrentTileXValue * SignX;
-		}
-		else if (FMath::IsNearlyZero(MoveDirection.Y))
-		{
-			int32 TmpY = FMath::Abs(CurrentPos.Y);
-			int32 SignY = FMath::Sign(CurrentPos.Y);
+	//		// Center on the vertical coordinate
+	//		/*
+	//			Take the current tile top left coordinate to avoid "jump to next tile" effect.
+	//			If the coordinate is > 0.5, the rounding will move to the next tile.
+	//		*/
+	//		int32 XValue = FMath::Floor(TmpX);
+	//		int32 CurrentTileXValue = XValue - (XValue % TileSize) + HalfTileSize;
+	//		//NewPos.X = CurrentTileXValue + 50 * FMath::Sign(NewPos.X);
+	//		//NewPos.X = CurrentTileXValue + 50;
+	//		NewPos.X = CurrentTileXValue * SignX;
+	//	}
+	//	else if (FMath::IsNearlyZero(MoveDirection.Y))
+	//	{
+	//		int32 TmpY = FMath::Abs(CurrentPos.Y);
+	//		int32 SignY = FMath::Sign(CurrentPos.Y);
 
-			// Center on the horizontal coordinate
-			int32 YValue = FMath::Floor(TmpY);
-			// Take the current tile top left coordinate.
-			// TODO: 100 must be a config value, move to game constants data asset.
-			int32 CurrentTileYValue = YValue - (YValue % TileSize) + HalfTileSize;
-			//NewPos.Y = CurrentTileYValue + 50 * FMath::Sign(NewPos.Y);
-			NewPos.Y = CurrentTileYValue * SignY;
-		}
-		else
-		{
-			// Something wrong in the movement direction setup
-			UE_LOG(SnakeLogCategoryGame, Warning, TEXT("Something went wrong in the MovementDirection setup: %s"), *MoveDirection.ToString());
-			ensure(false);
-		}
-	}
+	//		// Center on the horizontal coordinate
+	//		int32 YValue = FMath::Floor(TmpY);
+	//		// Take the current tile top left coordinate.
+	//		// TODO: 100 must be a config value, move to game constants data asset.
+	//		int32 CurrentTileYValue = YValue - (YValue % TileSize) + HalfTileSize;
+	//		//NewPos.Y = CurrentTileYValue + 50 * FMath::Sign(NewPos.Y);
+	//		NewPos.Y = CurrentTileYValue * SignY;
+	//	}
+	//	else
+	//	{
+	//		// Something wrong in the movement direction setup
+	//		UE_LOG(SnakeLogCategoryGame, Warning, TEXT("Something went wrong in the MovementDirection setup: %s"), *MoveDirection.ToString());
+	//		ensure(false);
+	//	}
+	//}
 
 	SetActorLocation(NewPos, true);
 
@@ -187,6 +251,7 @@ void ASnakePawn::BeginPlay()
 	check(GameConstants);
 	TileSize = GameConstants->TileSize;
 	HalfTileSize = FMath::RoundToInt32(TileSize / 2.0f);
+	DistanceFromTileCenterTolerance = (HalfTileSize * CenterReachedPercentageTolerance) / 100.0f;
 }
 
 void ASnakePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -223,14 +288,21 @@ void ASnakePawn::HandleMoveRightIA(const FInputActionInstance& InputActionInstan
 {
 	if (InputActionInstance.GetValue().IsNonZero())
 	{
+		if (!PendingMoveDirection.IsSet())
+		{
+			const float Amount = InputActionInstance.GetValue().Get<float>();
+			PendingMoveDirection = FVector(0.0f, Amount, 0.0f);
+			
+		}
+
 		// Can't change direction left/right without first going up or down.
-		if (FMath::IsNearlyZero(MoveDirection.Y))
+		/*if (FMath::IsNearlyZero(MoveDirection.Y))
 		{
 			const float Amount = InputActionInstance.GetValue().Get<float>();
 			PreviousDirection = MoveDirection;
 			MoveDirection = FVector(0.0f, Amount, 0.0f);
 			bDirectionChanged = true;
-		}
+		}*/
 	}
 }
 
@@ -238,13 +310,20 @@ void ASnakePawn::HandleMoveUpIA(const FInputActionInstance& InputActionInstance)
 {
 	if (InputActionInstance.GetValue().IsNonZero())
 	{
+		if (!PendingMoveDirection.IsSet())
+		{
+			const float Amount = InputActionInstance.GetValue().Get<float>();
+			PendingMoveDirection = FVector(Amount, 0.0f, 0.0f);
+		}
+
 		// Can't change direction up/down without first going left or right.
-		if (FMath::IsNearlyZero(MoveDirection.X))
+		/*if (FMath::IsNearlyZero(MoveDirection.X))
 		{
 			const float Amount = InputActionInstance.GetValue().Get<float>();
 			PreviousDirection = MoveDirection;
 			MoveDirection = FVector(Amount, 0.0f, 0.0f);
 			bDirectionChanged = true;
-		}
+		}*/
 	}
 }
+

@@ -33,6 +33,7 @@ private:
 	UFUNCTION()
 	void HandleMoveUpIA(const FInputActionInstance& InputActionInstance);
 
+
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UStaticMeshComponent> StaticMeshComp{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
@@ -53,12 +54,21 @@ private:
 		
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Movement")
 	float MaxMovementSpeed = 500.0f;
+	/**
+		The change in direction is applied only when the snake
+		reaches the center of a tile. This value represents
+		the tolerance error from the center of the tile.
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Movement", meta = (UIMin = "1.0", ClampMin = "1.0", UIMax = "100.0", ClampMax = "100.0"))
+	float CenterReachedPercentageTolerance = 5.0f;
 
 	FVector				MoveDirection = FVector::RightVector;
-	TOptional<FVector>	PreviousDirection{};
-	bool				bDirectionChanged = false;
+	//TOptional<FVector>	PreviousDirection{};
+	TOptional<FVector>	PendingMoveDirection{};
+	//bool				bDirectionChanged = false;
 	int32				TileSize = 0;
 	int32				HalfTileSize = 0;
+	float				DistanceFromTileCenterTolerance = 0.0f;
 
 #if !UE_BUILD_SHIPPING
 	FTimerHandle SnakePositionDebuggerTimerHandle{};
