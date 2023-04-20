@@ -188,21 +188,12 @@ void ASnakePawn::HandleMoveRightIA(const FInputActionInstance& InputActionInstan
 {
 	if (InputActionInstance.GetValue().IsNonZero())
 	{
-		if (!PendingMoveDirection.IsSet())
+		// Can't change direction left/right without first going up or down.
+		if (!PendingMoveDirection.IsSet() && FMath::IsNearlyZero(MoveDirection.Y))
 		{
 			const float Amount = InputActionInstance.GetValue().Get<float>();
 			PendingMoveDirection = FVector(0.0f, Amount, 0.0f);
-			
 		}
-
-		// Can't change direction left/right without first going up or down.
-		/*if (FMath::IsNearlyZero(MoveDirection.Y))
-		{
-			const float Amount = InputActionInstance.GetValue().Get<float>();
-			PreviousDirection = MoveDirection;
-			MoveDirection = FVector(0.0f, Amount, 0.0f);
-			bDirectionChanged = true;
-		}*/
 	}
 }
 
@@ -210,20 +201,12 @@ void ASnakePawn::HandleMoveUpIA(const FInputActionInstance& InputActionInstance)
 {
 	if (InputActionInstance.GetValue().IsNonZero())
 	{
-		if (!PendingMoveDirection.IsSet())
+		// Can't change direction up/down without first going left or right.
+		if (!PendingMoveDirection.IsSet() && FMath::IsNearlyZero(MoveDirection.X))
 		{
 			const float Amount = InputActionInstance.GetValue().Get<float>();
 			PendingMoveDirection = FVector(Amount, 0.0f, 0.0f);
 		}
-
-		// Can't change direction up/down without first going left or right.
-		/*if (FMath::IsNearlyZero(MoveDirection.X))
-		{
-			const float Amount = InputActionInstance.GetValue().Get<float>();
-			PreviousDirection = MoveDirection;
-			MoveDirection = FVector(Amount, 0.0f, 0.0f);
-			bDirectionChanged = true;
-		}*/
 	}
 }
 
