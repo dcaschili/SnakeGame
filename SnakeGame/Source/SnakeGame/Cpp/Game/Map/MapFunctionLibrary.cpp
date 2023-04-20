@@ -62,3 +62,32 @@ bool UMapFunctionLibrary::GetWorldLocationFromTile(const UObject* InWorldContext
 
 	return true;
 }
+
+bool UMapFunctionLibrary::IsWorldLocationNearCurrentTileCenter(const UObject* InWorldContextObject, const FVector& CurrentLocation)
+{
+	const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(InWorldContextObject);
+	check(GameConstants);
+
+	const float CenterReachedPercentageTolerance = GameConstants->CenterReachedPercentageTolerance;
+	const int32 TileSize = GameConstants->TileSize;
+	const float HalfTileSize = TileSize / 2.0f;
+
+	const float DistanceFromTileCenterTolerance = (HalfTileSize * CenterReachedPercentageTolerance) / 100.0f;
+
+	// Convert to int
+	FIntVector2 IntCurrentPos{};
+	IntCurrentPos.X = FMath::RoundToInt(CurrentLocation.X);
+	IntCurrentPos.Y = FMath::RoundToInt(CurrentLocation.Y);
+
+	// Get position within tile sizes [0, TileSize]
+	FIntVector2 TileSizeCurrentPos{};
+	TileSizeCurrentPos.X = FMath::Abs(IntCurrentPos.X) % TileSize;
+	TileSizeCurrentPos.Y = FMath::Abs(IntCurrentPos.Y) % TileSize;
+
+	FVector ToPointInTile{};
+	ToPointInTile.X = TileSizeCurrentPos.X - HalfTileSize;
+	ToPointInTile.Y = TileSizeCurrentPos.Y - HalfTileSize;
+	ToPointInTile.Z = 0.0f;
+
+    return ToPointInTile.IsNearlyZero(DistanceFromTileCenterTolerance);
+}

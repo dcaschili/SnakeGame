@@ -22,4 +22,15 @@ public:
 		@return true if a location exists, false otherwise. 
 	*/
 	static bool GetWorldLocationFromTile(const UObject* InWorldContextObject, const FIntVector2& InTileLocation, FVector& OutLocation);	
+
+	/** 
+		It checks whether the CurrentLocation is at the tile
+		center or on the "outer border".
+		In the game constants a tolerance value for the
+		tile center check is defined.
+		@param InWorldContextObject
+		@param CurrentLocation The current location
+		@return true if the location is on the center (considering tolerance), false otherwise.
+	*/
+	static bool IsWorldLocationNearCurrentTileCenter(const UObject* InWorldContextObject, const FVector& CurrentLocation);
 };

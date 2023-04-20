@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "ChangeDirectionAction.h"
 
 #include "SnakePawn.generated.h"
 
@@ -13,6 +14,9 @@ class UInputMappingContext;
 class UInputComponent;
 class UEndGameCollisionDetectionComponent;
 class UMapOccupancyComponent;
+class USnakeBodyPartMoveComponent;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeDirectionDelegate, const FChangeDirectionAction&, NewDirectionAction);
 
 UCLASS()
 class SNAKEGAME_API ASnakePawn : public APawn
@@ -22,6 +26,8 @@ public:
 	ASnakePawn();
 
 	virtual void Tick(float DeltaSeconds) override;
+
+	FChangeDirectionDelegate OnChangeDirection{};
 
 protected:
 	virtual void BeginPlay() override;
@@ -44,6 +50,8 @@ private:
 	TObjectPtr<UEndGameCollisionDetectionComponent> EndGameCollisionComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UMapOccupancyComponent> MapOccupancyComponent{};
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
+	TObjectPtr<USnakeBodyPartMoveComponent> SnakeMovementComponent{};
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Inputs")
 	TObjectPtr<UInputAction> MoveRightIA{};
@@ -54,13 +62,6 @@ private:
 		
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Movement")
 	float MaxMovementSpeed = 500.0f;
-	/**
-		The change in direction is applied only when the snake
-		reaches the center of a tile. This value represents
-		the tolerance error from the center of the tile.
-	*/
-	UPROPERTY(EditDefaultsOnly, Category = "Snake|Movement", meta = (UIMin = "1.0", ClampMin = "1.0", UIMax = "100.0", ClampMax = "100.0"))
-	float CenterReachedPercentageTolerance = 5.0f;
 
 	FVector				MoveDirection = FVector::RightVector;
 	//TOptional<FVector>	PreviousDirection{};
