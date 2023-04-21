@@ -15,6 +15,7 @@ ASnakeBodyPart::ASnakeBodyPart()
 	RootComponent = StaticMeshComp;
 	StaticMeshComp->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
 	StaticMeshComp->CastShadow = false;
+	StaticMeshComp->SetGenerateOverlapEvents(true);
 
 	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));
 }

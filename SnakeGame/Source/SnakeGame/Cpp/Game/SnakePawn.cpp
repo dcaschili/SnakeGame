@@ -47,6 +47,7 @@ ASnakePawn::ASnakePawn()
 	RootComponent = StaticMeshComp;
 	StaticMeshComp->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
 	StaticMeshComp->CastShadow = false;
+	StaticMeshComp->SetGenerateOverlapEvents(true);
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
 	if (SpringArmComp)
