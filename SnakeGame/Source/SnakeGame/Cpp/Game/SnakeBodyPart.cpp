@@ -4,6 +4,7 @@
 #include "Game/SnakePawn.h"
 #include "Game/Map/MapFunctionLibrary.h"
 #include "Data/GameConstants.h"
+#include "Game/SnakeBodyPartMoveComponent.h"
 
 ASnakeBodyPart::ASnakeBodyPart()
 	: Super()
@@ -14,6 +15,8 @@ ASnakeBodyPart::ASnakeBodyPart()
 	RootComponent = StaticMeshComp;
 	StaticMeshComp->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
 	StaticMeshComp->CastShadow = false;
+
+	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));
 }
 
 void ASnakeBodyPart::Tick(float DeltaSeconds)
@@ -21,6 +24,8 @@ void ASnakeBodyPart::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	if (!SnakePawnPtr.IsValid()) return;
+
+	if (!SnakeMovementComponent) return;
 
 	if (!ChangeDirectionQueue.IsEmpty())
 	{
@@ -37,8 +42,7 @@ void ASnakeBodyPart::Tick(float DeltaSeconds)
 					FChangeDirectionAction CurrentChangeDirectionAction{};
 					ensure(ChangeDirectionQueue.Dequeue(CurrentChangeDirectionAction));
 					
-					// Change direction
-					CurrentMoveDirection = CurrentChangeDirectionAction.Direction;
+					SnakeMovementComponent->ChangeMoveDirection(CurrentChangeDirectionAction.Direction);
 				}
 			}
 		}

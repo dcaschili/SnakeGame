@@ -8,6 +8,7 @@
 #include "SnakeBodyPart.generated.h"
 
 class ASnakePawn;
+class USnakeBodyPartMoveComponent;
 
 UCLASS()
 class SNAKEGAME_API ASnakeBodyPart : public AActor
@@ -39,10 +40,11 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UStaticMeshComponent> StaticMeshComp{};
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
+	TObjectPtr<USnakeBodyPartMoveComponent> SnakeMovementComponent{};
 
 
 	TWeakObjectPtr<ASnakePawn>		SnakePawnPtr{};
-	FVector							CurrentMoveDirection = FVector::RightVector;
 	TQueue<FChangeDirectionAction>	ChangeDirectionQueue{};
 	float							HalfTileSize{};
 };

@@ -19,6 +19,7 @@
 #include "Game/Map/MapOccupancyComponent.h"
 #include "Game/Map/MapFunctionLibrary.h"
 #include "Game/SnakeBodyPartMoveComponent.h"
+#include "Game/SnakeBodyPart.h"
 
 
 #if !UE_BUILD_SHIPPING
@@ -152,6 +153,22 @@ void ASnakePawn::BeginPlay()
 	check(GameConstants);
 	TileSize = GameConstants->TileSize;
 	HalfTileSize = FMath::RoundToInt32(TileSize / 2.0f);
+
+	FIntVector2 TilePosition{};
+	const FVector SnakeLocation = GetActorLocation();
+	UMapFunctionLibrary::GetMapTileFromWorldLocation(this, SnakeLocation, TilePosition);
+	// Y -> Row; X -> Column
+	TilePosition.X--;
+	FVector SpawnLocation{};
+	UMapFunctionLibrary::GetWorldLocationFromTile(this, TilePosition, SpawnLocation);
+
+	SpawnLocation.Z = GetActorLocation().Z;
+
+	if (ensure(SnakeBodyPartClass))
+	{
+		ASnakeBodyPart* const SnakeBodyPart = GetWorld()->SpawnActor<ASnakeBodyPart>(SnakeBodyPartClass, SpawnLocation, GetActorRotation());
+		SnakeBodyPart->SetSnakePawn(this);
+	}
 }
 
 void ASnakePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

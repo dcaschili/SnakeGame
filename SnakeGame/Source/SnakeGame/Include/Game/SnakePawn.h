@@ -15,6 +15,7 @@ class UInputComponent;
 class UEndGameCollisionDetectionComponent;
 class UMapOccupancyComponent;
 class USnakeBodyPartMoveComponent;
+class ASnakeBodyPart;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeDirectionDelegate, const FChangeDirectionAction&, NewDirectionAction);
 
@@ -39,6 +40,8 @@ private:
 	UFUNCTION()
 	void HandleMoveUpIA(const FInputActionInstance& InputActionInstance);
 
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Spawn")
+	TSubclassOf<ASnakeBodyPart> SnakeBodyPartClass{};
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UStaticMeshComponent> StaticMeshComp{};
