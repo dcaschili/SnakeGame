@@ -60,11 +60,6 @@ void ASnakeBodyPart::SetSnakePawn(ASnakePawn* InPawnPtr)
 	}
 }
 
-void ASnakeBodyPart::SetBodyPartType(ESnakeBodyPartType NewBodyPartType)
-{
-	BodyPartType = NewBodyPartType;
-}
-
 void ASnakeBodyPart::BeginPlay()
 {
 	Super::BeginPlay();

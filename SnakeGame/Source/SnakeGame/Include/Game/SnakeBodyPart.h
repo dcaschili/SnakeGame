@@ -4,6 +4,7 @@
 #include "Game/SnakeBodyPartType.h"
 #include "Containers/Queue.h"
 #include "Game/ChangeDirectionAction.h"
+#include "Game/SnakeBodyPartTypeInterface.h"
 
 #include "SnakeBodyPart.generated.h"
 
@@ -11,7 +12,7 @@ class ASnakePawn;
 class USnakeBodyPartMoveComponent;
 
 UCLASS()
-class SNAKEGAME_API ASnakeBodyPart : public AActor
+class SNAKEGAME_API ASnakeBodyPart : public AActor, public ISnakeBodyPartTypeInterface
 {
     GENERATED_BODY()
 public:
@@ -20,9 +21,10 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	void SetSnakePawn(ASnakePawn* InPawnPtr);
-	void SetBodyPartType(ESnakeBodyPartType NewBodyPartType);
-
-	ESnakeBodyPartType GetBodyPartType() const { return BodyPartType; }
+	
+	// ISnakeBodyPartTypeInterface
+	virtual void				SetSnakeBodyPartType(ESnakeBodyPartType InBodyPartType) override { BodyPartType = BodyPartType; }
+	virtual ESnakeBodyPartType	GetSnakeBodyPartType() const override { return BodyPartType; };
 
 protected:
 	virtual void BeginPlay() override;

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "Game/SnakeBodyPartTypeInterface.h"
 #include "ChangeDirectionAction.h"
 
 #include "SnakePawn.generated.h"
@@ -20,13 +21,17 @@ class ASnakeBodyPart;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeDirectionDelegate, const FChangeDirectionAction&, NewDirectionAction);
 
 UCLASS()
-class SNAKEGAME_API ASnakePawn : public APawn
+class SNAKEGAME_API ASnakePawn : public APawn, public ISnakeBodyPartTypeInterface
 {
     GENERATED_BODY()
 public:
 	ASnakePawn();
 
 	virtual void Tick(float DeltaSeconds) override;
+
+	// ISnakeBodyPartTypeInterface
+	virtual void				SetSnakeBodyPartType(ESnakeBodyPartType InBodyPartType) override { BodyPartType = BodyPartType; }
+	virtual ESnakeBodyPartType	GetSnakeBodyPartType() const override { return BodyPartType; };
 
 	FChangeDirectionDelegate OnChangeDirection{};
 
@@ -65,6 +70,8 @@ private:
 		
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Movement")
 	float MaxMovementSpeed = 500.0f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess=true))
+	ESnakeBodyPartType BodyPartType{};
 
 	FVector				MoveDirection = FVector::RightVector;
 	//TOptional<FVector>	PreviousDirection{};
