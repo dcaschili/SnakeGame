@@ -20,6 +20,9 @@
 #include "Game/Map/MapFunctionLibrary.h"
 #include "Game/SnakeBodyPartMoveComponent.h"
 #include "Game/SnakeBodyPart.h"
+#include "Game/SnakeBodyPartSpawner.h"
+#include "Game/CollectiblesSpawner.h"
+#include "SnakeGameGameModeBase.h"
 
 
 #if !UE_BUILD_SHIPPING
@@ -170,6 +173,15 @@ void ASnakePawn::BeginPlay()
 		ASnakeBodyPart* const SnakeBodyPart = GetWorld()->SpawnActor<ASnakeBodyPart>(SnakeBodyPartClass, SpawnLocation, GetActorRotation());
 		SnakeBodyPart->SetSnakePawn(this);
 	}
+
+	BindEvents();
+}
+
+void ASnakePawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	UnbindEvents();
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void ASnakePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -200,6 +212,34 @@ void ASnakePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 			ensure(false);
 		}
 	}
+}
+
+void ASnakePawn::BindEvents()
+{
+	if (ASnakeGameGameModeBase* GameMode = Cast<ASnakeGameGameModeBase>(UGameplayStatics::GetGameMode(this)))
+	{
+		if (ACollectiblesSpawner* const Spawner = GameMode->GetCollectiblesSpawner())
+		{
+			Spawner->OnCollectibleCollected.AddUniqueDynamic(this, &ThisClass::HandleCollectibleCollected);
+		}
+	}
+}
+
+void ASnakePawn::UnbindEvents()
+{
+	if (ASnakeGameGameModeBase* GameMode = Cast<ASnakeGameGameModeBase>(UGameplayStatics::GetGameMode(this)))
+	{
+		if (ACollectiblesSpawner* const Spawner = GameMode->GetCollectiblesSpawner())
+		{
+			Spawner->OnCollectibleCollected.RemoveDynamic(this, &ThisClass::HandleCollectibleCollected);
+		}
+	}
+}
+
+void ASnakePawn::HandleCollectibleCollected(const FVector& InCollectibleLocation)
+{
+	UE_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("ASnakePawn - Spawning body part spawner"));
+	GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("Spawning body parte spawner!"));
 }
 
 void ASnakePawn::HandleMoveRightIA(const FInputActionInstance& InputActionInstance)

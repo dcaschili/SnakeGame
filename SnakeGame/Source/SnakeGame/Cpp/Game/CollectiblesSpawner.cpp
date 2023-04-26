@@ -25,12 +25,15 @@ void ACollectiblesSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void ACollectiblesSpawner::HandleCollectibleCollected()
+void ACollectiblesSpawner::HandleCollectibleCollected(const FVector& InCollectibleLocation)
 {
 	if (ActiveCollectibleActor.IsValid())
 	{
 		ActiveCollectibleActor->OnCollectedActor.RemoveDynamic(this, &ThisClass::HandleCollectibleCollected);
+
+		OnCollectibleCollected.Broadcast(InCollectibleLocation);
 	}
+
 	SpawnCollectible();
 }
 

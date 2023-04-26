@@ -22,7 +22,7 @@ void ACollectibleActor::NotifyActorBeginOverlap(AActor* OtherActor)
 
 	if (HasAuthority())
 	{
-		OnCollectedActor.Broadcast();
+		OnCollectedActor.Broadcast(GetActorLocation());
 		Destroy();
 	}
 }

@@ -7,7 +7,7 @@
 class UMapOccupancyComponent;
 class UStaticMeshComponent;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCollectedActorEvent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollectedActorEvent, const FVector&, InCollectibleLocation);
 
 UCLASS()
 class SNAKEGAME_API ACollectibleActor : public AActor

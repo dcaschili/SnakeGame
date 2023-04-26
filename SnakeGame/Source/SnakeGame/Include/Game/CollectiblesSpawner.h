@@ -6,12 +6,17 @@
 
 class ACollectibleActor;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollectibleSpawnerCollectedEvent, const FVector&, InCollectibleLocation);
+
 UCLASS()
 class SNAKEGAME_API ACollectiblesSpawner : public AActor
 {
     GENERATED_BODY()
 public:
+	
 	ACollectiblesSpawner();
+
+	FCollectibleSpawnerCollectedEvent OnCollectibleCollected{};
 
 protected:
 	virtual void BeginPlay() override;
@@ -22,9 +27,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Spawning", meta=(MinUI = 0.0f, ClampMinUI = 0.0f))
 	float SpawningStartingHeight = 40.0f;
 
+
 private:
 	UFUNCTION()
-	void HandleCollectibleCollected();
+	void HandleCollectibleCollected(const FVector& InCollectibleLocation);
 
 	void SpawnCollectible();
 

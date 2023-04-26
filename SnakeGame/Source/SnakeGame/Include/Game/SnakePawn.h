@@ -17,6 +17,7 @@ class UEndGameCollisionDetectionComponent;
 class UMapOccupancyComponent;
 class USnakeBodyPartMoveComponent;
 class ASnakeBodyPart;
+class ASnakeBodyPartSpawner;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeDirectionDelegate, const FChangeDirectionAction&, NewDirectionAction);
 
@@ -37,9 +38,15 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
+	virtual void BindEvents();
+	virtual void UnbindEvents();
+
 private:
+	UFUNCTION()
+	void HandleCollectibleCollected(const FVector& InCollectibleLocation);
 	UFUNCTION()
 	void HandleMoveRightIA(const FInputActionInstance& InputActionInstance);
 	UFUNCTION()
@@ -47,6 +54,8 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Spawn")
 	TSubclassOf<ASnakeBodyPart> SnakeBodyPartClass{};
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Spawn")
+	TSubclassOf<ASnakeBodyPartSpawner> SnakeBodyPartSpawnerClass{};
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UStaticMeshComponent> StaticMeshComp{};
