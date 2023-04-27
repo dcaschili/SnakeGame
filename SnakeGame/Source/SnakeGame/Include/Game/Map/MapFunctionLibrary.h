@@ -33,4 +33,13 @@ public:
 		@return true if the location is on the center (considering tolerance), false otherwise.
 	*/
 	static bool IsWorldLocationNearCurrentTileCenter(const UObject* InWorldContextObject, const FVector& CurrentLocation);
+
+	/**
+		It converts a world location to the nearest tile center, if it is possible.
+		@param InWorldContextObject
+		@param InCurrentLocation	The current location
+		@param OutLocation			The center of the tile location
+		@return true if the conversion was successful
+	*/
+	static bool AlignWorldLocationToTileCenter(const UObject* InWorldContextObject, const FVector& InCurrentLocation, FVector& OutLocation);
 };

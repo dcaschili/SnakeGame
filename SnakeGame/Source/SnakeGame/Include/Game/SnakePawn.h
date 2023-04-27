@@ -1,6 +1,5 @@
 #pragma once
 
-#include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Game/SnakeBodyPartTypeInterface.h"
 #include "ChangeDirectionAction.h"
@@ -58,8 +57,6 @@ private:
 	void HandleMoveUpIA(const FInputActionInstance& InputActionInstance);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Spawn")
-	TSubclassOf<ASnakeBodyPart> SnakeBodyPartClass{};
-	UPROPERTY(EditDefaultsOnly, Category = "Snake|Spawn")
 	TSubclassOf<ASnakeBodyPartSpawner> SnakeBodyPartSpawnerClass{};
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
@@ -84,6 +81,11 @@ private:
 		
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Movement")
 	float MaxMovementSpeed = 500.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body", meta=(ClampMin=1, UIMin=1))
+	int32 InitialBodyPartsCount = 3;
+
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess=true))
 	ESnakeBodyPartType BodyPartType{};
 

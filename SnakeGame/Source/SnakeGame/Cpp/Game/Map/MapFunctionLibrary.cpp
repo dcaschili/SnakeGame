@@ -91,3 +91,19 @@ bool UMapFunctionLibrary::IsWorldLocationNearCurrentTileCenter(const UObject* In
 
     return ToPointInTile.IsNearlyZero(DistanceFromTileCenterTolerance);
 }
+
+bool UMapFunctionLibrary::AlignWorldLocationToTileCenter(const UObject* InWorldContextObject, const FVector& InCurrentLocation, FVector& OutLocation)
+{
+	FIntVector2 TileLocation{};
+	if (GetMapTileFromWorldLocation(InWorldContextObject, InCurrentLocation, TileLocation))
+	{
+		FVector WorldLocation{};
+		if (GetWorldLocationFromTile(InWorldContextObject, TileLocation, WorldLocation))
+		{
+			OutLocation = MoveTemp(WorldLocation);
+			return true;
+		}
+	}
+
+	return false;
+}

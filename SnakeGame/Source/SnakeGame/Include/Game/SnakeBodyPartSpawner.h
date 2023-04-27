@@ -18,6 +18,8 @@ public:
 
 	virtual void NotifyActorEndOverlap(AActor* OtherActor) override;
 
+	void SetBodyPartToSpawnCount(int32 InBodyPartToSpawnCount);
+
 private:
 
 	void SpawnBodyPart(ASnakePawn* InSnakePawn, const FVector& InMoveDirection, const TArray<FChangeDirectionAction>& InChangeDirectionQueue = {});
@@ -27,5 +29,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Spawn")
 	TSubclassOf<ASnakeBodyPart> SnakeBodyPartClass{};
 
+	int32 BodyPartToSpawnCount = 1;
 	bool bSpawnCompleted = false;
 };

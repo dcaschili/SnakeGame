@@ -3,18 +3,12 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Camera/CameraComponent.h"
-#include "InputMappingContext.h"
 #include "InputAction.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "SnakeLog.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
-#include "GameFramework/PlayerController.h"
 #include "Engine/LocalPlayer.h"
-#include "TimerManager.h"
-#include "SnakeGameInstance.h"
-#include "Data/GameConstants.h"
 #include "Game/EndGameCollisionDetectionComponent.h"
 #include "Game/Map/MapOccupancyComponent.h"
 #include "Game/Map/MapFunctionLibrary.h"
@@ -24,6 +18,7 @@
 #include "Game/CollectiblesSpawner.h"
 #include "SnakeGameGameModeBase.h"
 
+#include "TimerManager.h"
 
 #if !UE_BUILD_SHIPPING
 #include "DrawDebugHelpers.h"
@@ -137,7 +132,6 @@ void ASnakePawn::Tick(float DeltaSeconds)
 			OnChangeDirection.Broadcast(ChangeDirectionAction);
 		}
 	}
-		
 }
 
 void ASnakePawn::AddSnakeBodyPart(ASnakeBodyPart* InSnakeBodyPart)
@@ -182,29 +176,23 @@ void ASnakePawn::BeginPlay()
 		ensure(false);
 	}
 
-	const USnakeGameInstance* const GameInstance = Cast<USnakeGameInstance>(UGameplayStatics::GetGameInstance(this));
-	check(GameInstance);
-	const UGameConstants* const GameConstants = GameInstance->GetGameConstants();
-	check(GameConstants);
-	TileSize = GameConstants->TileSize;
-	HalfTileSize = FMath::RoundToInt32(TileSize / 2.0f);
-
-	FIntVector2 TilePosition{};
-	const FVector SnakeLocation = GetActorLocation();
-	UMapFunctionLibrary::GetMapTileFromWorldLocation(this, SnakeLocation, TilePosition);
-	// Y -> Row; X -> Column
-	TilePosition.X--;
-	FVector SpawnLocation{};
-	UMapFunctionLibrary::GetWorldLocationFromTile(this, TilePosition, SpawnLocation);
-
-	SpawnLocation.Z = GetActorLocation().Z;
-
-	if (ensure(SnakeBodyPartClass))
+	// Spawn initial body part spawner
+	if (ensure(SnakeBodyPartSpawnerClass))
 	{
-		/*ASnakeBodyPart* const SnakeBodyPart = GetWorld()->SpawnActor<ASnakeBodyPart>(SnakeBodyPartClass, SpawnLocation, GetActorRotation());
-		SnakeBodyPart->SetSnakePawn(this);
-		SnakeBodyPart->SetSnakeBodyPartType(ESnakeBodyPartType::kTail);
-		SnakeBody.Add(SnakeBodyPart);*/
+		FVector SpawnLocation{};
+		if (ensure(UMapFunctionLibrary::AlignWorldLocationToTileCenter(this, GetActorLocation(), SpawnLocation)))
+		{
+			UWorld* const World = GetWorld();
+			if (ensure(World))
+			{
+				SpawnLocation.Z = GetActorLocation().Z;
+				ASnakeBodyPartSpawner* BodyPartSpawner = World->SpawnActor<ASnakeBodyPartSpawner>(SnakeBodyPartSpawnerClass, SpawnLocation, FRotator::ZeroRotator);
+				if (ensure(BodyPartSpawner) && InitialBodyPartsCount > 1)
+				{
+					BodyPartSpawner->SetBodyPartToSpawnCount(InitialBodyPartsCount);
+				}
+			}
+		}
 	}
 
 	BindEvents();

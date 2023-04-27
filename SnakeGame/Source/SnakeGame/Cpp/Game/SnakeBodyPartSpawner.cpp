@@ -90,6 +90,11 @@ void ASnakeBodyPartSpawner::NotifyActorEndOverlap(AActor* OtherActor)
 	}
 }
 
+void ASnakeBodyPartSpawner::SetBodyPartToSpawnCount(int32 InBodyPartToSpawnCount)
+{
+	BodyPartToSpawnCount = InBodyPartToSpawnCount;
+}
+
 void ASnakeBodyPartSpawner::SpawnBodyPart(ASnakePawn* InSnakePawn, const FVector& InMoveDirection, const TArray<FChangeDirectionAction>& InChangeDirectionQueue /* = {}*/)
 {
 	if (ensure(InSnakePawn) && ensure(SnakeBodyPartClass))
@@ -107,7 +112,8 @@ void ASnakeBodyPartSpawner::SpawnBodyPart(ASnakePawn* InSnakePawn, const FVector
 				SnakeBodyPart->SetMoveDir(InMoveDirection);
 				SnakeBodyPart->SetChangeDirQueue(InChangeDirectionQueue);
 			
-				bSpawnCompleted = true;
+				BodyPartToSpawnCount--;
+				bSpawnCompleted = BodyPartToSpawnCount <= 0;
 			}
 		}
 		
