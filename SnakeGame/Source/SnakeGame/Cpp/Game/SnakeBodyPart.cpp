@@ -5,6 +5,7 @@
 #include "Game/Map/MapFunctionLibrary.h"
 #include "Data/GameConstants.h"
 #include "Game/SnakeBodyPartMoveComponent.h"
+#include "Game/Map/MapOccupancyComponent.h"
 
 ASnakeBodyPart::ASnakeBodyPart()
 	: Super()
@@ -18,6 +19,12 @@ ASnakeBodyPart::ASnakeBodyPart()
 	StaticMeshComp->SetGenerateOverlapEvents(true);
 
 	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));
+
+	MapOccupancyComponent = CreateDefaultSubobject<UMapOccupancyComponent>(TEXT("MapOccupancyComponent"));
+	if (ensure(MapOccupancyComponent))
+	{
+		MapOccupancyComponent->SetEnableContinuousTileOccupancyTest(true);
+	}
 }
 
 void ASnakeBodyPart::Tick(float DeltaSeconds)
@@ -30,25 +37,28 @@ void ASnakeBodyPart::Tick(float DeltaSeconds)
 
 	if (!ChangeDirectionQueue.IsEmpty())
 	{
-		if (const FChangeDirectionAction* ChangeDirAction = ChangeDirectionQueue.Peek())
-		{
-			const FVector CurrentPosition = GetActorLocation();
+		const FChangeDirectionAction ChangeDirAction = ChangeDirectionQueue[0];
+		const FVector CurrentPosition = GetActorLocation();
 
-			// Check if we are within the change direction tile.
-			if ((CurrentPosition - ChangeDirAction->Location).SquaredLength() <= (HalfTileSize * HalfTileSize))
+		// Check if we are within the change direction tile.
+		if ((CurrentPosition - ChangeDirAction.Location).SquaredLength() <= (HalfTileSize * HalfTileSize))
+		{
+			// Check if we need to change direction
+			if (UMapFunctionLibrary::IsWorldLocationNearCurrentTileCenter(this, CurrentPosition))
 			{
-				// Check if we need to change direction
-				if (UMapFunctionLibrary::IsWorldLocationNearCurrentTileCenter(this, CurrentPosition))
-				{
-					FChangeDirectionAction CurrentChangeDirectionAction{};
-					ensure(ChangeDirectionQueue.Dequeue(CurrentChangeDirectionAction));
-					
-					SnakeMovementComponent->ChangeMoveDirection(CurrentChangeDirectionAction.Direction);
-				}
+				ChangeDirectionQueue.RemoveAt(0);
+				SnakeMovementComponent->ChangeMoveDirection(ChangeDirAction.Direction);
 			}
 		}
 	}
-	
+}
+
+void ASnakeBodyPart::SetMoveDir(const FVector& InMoveDirection)
+{
+	if (ensure(SnakeMovementComponent))
+	{
+		SnakeMovementComponent->ChangeMoveDirection(InMoveDirection);
+	}
 }
 
 void ASnakeBodyPart::SetSnakePawn(ASnakePawn* InPawnPtr)
@@ -56,9 +66,30 @@ void ASnakeBodyPart::SetSnakePawn(ASnakePawn* InPawnPtr)
 	if (InPawnPtr)
 	{
 		SnakePawnPtr = InPawnPtr;
-
-		BindDelegates();
 	}
+}
+
+ASnakePawn* ASnakeBodyPart::GetSnakePawn() const
+{
+	if (ensure(SnakePawnPtr.IsValid()))
+	{
+		return SnakePawnPtr.Get();
+	}
+	return nullptr;
+}
+
+void ASnakeBodyPart::AddChangeDirAction(const FChangeDirectionAction& InChangeDirAction)
+{
+	ChangeDirectionQueue.Add(InChangeDirAction);
+}
+
+FVector ASnakeBodyPart::GetMoveDirection() const
+{
+	if (ensure(SnakeMovementComponent))
+	{
+		return SnakeMovementComponent->GetMoveDirection();
+	}
+	return FVector::RightVector;
 }
 
 void ASnakeBodyPart::BeginPlay()
@@ -73,27 +104,6 @@ void ASnakeBodyPart::BeginPlay()
 
 void ASnakeBodyPart::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	UnbindDelegates();
 	Super::EndPlay(EndPlayReason);
 }
 
-void ASnakeBodyPart::HandleChangeDirectionDelegate(const FChangeDirectionAction& InNewChangeDirection)
-{
-	ChangeDirectionQueue.Enqueue(InNewChangeDirection);
-}
-
-void ASnakeBodyPart::BindDelegates()
-{
-	if (SnakePawnPtr.IsValid())
-	{
-		SnakePawnPtr->OnChangeDirection.AddUniqueDynamic(this, &ThisClass::HandleChangeDirectionDelegate);
-	}
-}
-
-void ASnakeBodyPart::UnbindDelegates()
-{
-	if (SnakePawnPtr.IsValid())
-	{
-		SnakePawnPtr->OnChangeDirection.RemoveDynamic(this, &ThisClass::HandleChangeDirectionDelegate);
-	}
-}

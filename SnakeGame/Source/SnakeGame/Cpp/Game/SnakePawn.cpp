@@ -73,6 +73,10 @@ ASnakePawn::ASnakePawn()
 
 	EndGameCollisionComponent = CreateDefaultSubobject<UEndGameCollisionDetectionComponent>(TEXT("EndGameCollisionDetectionComponent"));
 	MapOccupancyComponent = CreateDefaultSubobject<UMapOccupancyComponent>(TEXT("MapOccupancyComponent"));
+	if (ensure(MapOccupancyComponent))
+	{
+		MapOccupancyComponent->SetEnableContinuousTileOccupancyTest(true);
+	}
 	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));
 }
 
@@ -121,10 +125,37 @@ void ASnakePawn::Tick(float DeltaSeconds)
 			FChangeDirectionAction ChangeDirectionAction{};
 			ChangeDirectionAction.Direction = MoveDirection;
 			ChangeDirectionAction.Location = CurrentPos;
+
+			for (ASnakeBodyPart* const BodyPart : SnakeBody)
+			{
+				if (ensure(BodyPart))
+				{
+					BodyPart->AddChangeDirAction(ChangeDirectionAction);
+				}
+			}
+
 			OnChangeDirection.Broadcast(ChangeDirectionAction);
 		}
 	}
 		
+}
+
+void ASnakePawn::AddSnakeBodyPart(ASnakeBodyPart* InSnakeBodyPart)
+{
+	if (InSnakeBodyPart)
+	{
+		SnakeBody.Add(InSnakeBodyPart);
+		UE_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("Added new snake body part!"));
+	}
+}
+
+FVector ASnakePawn::GetMoveDirection() const
+{
+	if (ensure(SnakeMovementComponent))
+	{
+		return SnakeMovementComponent->GetMoveDirection();
+	}
+	return FVector::RightVector;
 }
 
 void ASnakePawn::BeginPlay()
@@ -170,8 +201,10 @@ void ASnakePawn::BeginPlay()
 
 	if (ensure(SnakeBodyPartClass))
 	{
-		ASnakeBodyPart* const SnakeBodyPart = GetWorld()->SpawnActor<ASnakeBodyPart>(SnakeBodyPartClass, SpawnLocation, GetActorRotation());
+		/*ASnakeBodyPart* const SnakeBodyPart = GetWorld()->SpawnActor<ASnakeBodyPart>(SnakeBodyPartClass, SpawnLocation, GetActorRotation());
 		SnakeBodyPart->SetSnakePawn(this);
+		SnakeBodyPart->SetSnakeBodyPartType(ESnakeBodyPartType::kTail);
+		SnakeBody.Add(SnakeBodyPart);*/
 	}
 
 	BindEvents();
@@ -238,8 +271,13 @@ void ASnakePawn::UnbindEvents()
 
 void ASnakePawn::HandleCollectibleCollected(const FVector& InCollectibleLocation)
 {
-	UE_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("ASnakePawn - Spawning body part spawner"));
-	GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("Spawning body parte spawner!"));
+	UE_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("ASnakePawn - Spawning body part spawner!"));
+	
+	if (ensure(SnakeBodyPartSpawnerClass))
+	{
+		check(GetWorld());
+		GetWorld()->SpawnActor<ASnakeBodyPartSpawner>(SnakeBodyPartSpawnerClass, InCollectibleLocation, FQuat::Identity.Rotator());
+	}
 }
 
 void ASnakePawn::HandleMoveRightIA(const FInputActionInstance& InputActionInstance)

@@ -34,6 +34,11 @@ public:
 	virtual void				SetSnakeBodyPartType(ESnakeBodyPartType InBodyPartType) override { BodyPartType = BodyPartType; }
 	virtual ESnakeBodyPartType	GetSnakeBodyPartType() const override { return BodyPartType; };
 
+	int32 GetSnakeBodyPartsCount() const { return SnakeBody.Num(); }
+	void AddSnakeBodyPart(ASnakeBodyPart* InSnakeBodyPart);
+
+	FVector GetMoveDirection() const; 
+
 	FChangeDirectionDelegate OnChangeDirection{};
 
 protected:
@@ -81,6 +86,9 @@ private:
 	float MaxMovementSpeed = 500.0f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess=true))
 	ESnakeBodyPartType BodyPartType{};
+
+	UPROPERTY()
+	TArray<ASnakeBodyPart*> SnakeBody{};
 
 	FVector				MoveDirection = FVector::RightVector;
 	//TOptional<FVector>	PreviousDirection{};

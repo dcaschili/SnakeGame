@@ -30,6 +30,7 @@ void ACollectiblesSpawner::HandleCollectibleCollected(const FVector& InCollectib
 	if (ActiveCollectibleActor.IsValid())
 	{
 		ActiveCollectibleActor->OnCollectedActor.RemoveDynamic(this, &ThisClass::HandleCollectibleCollected);
+		ActiveCollectibleActor.Reset();
 
 		OnCollectibleCollected.Broadcast(InCollectibleLocation);
 	}
@@ -52,9 +53,9 @@ void ACollectiblesSpawner::SpawnCollectible()
 				/*
 					Ensures that the previous position can't be used as new location
 				*/
-				if (ActiveCollectibleActor.IsValid())
+				if (LastSpawnLocation.IsSet())
 				{
-					const FVector PreviousCollectibleLocation = ActiveCollectibleActor->GetActorLocation();
+					const FVector PreviousCollectibleLocation = LastSpawnLocation.GetValue();
 
 					while ((SpawnLocation - PreviousCollectibleLocation).IsNearlyZero())
 					{
@@ -65,14 +66,15 @@ void ACollectiblesSpawner::SpawnCollectible()
 
 				SpawnLocation.Z = SpawningStartingHeight;
 				UE_LOG(SnakeLogCategorySpawner, Verbose, TEXT("Spawned collectible at position %s"), *SpawnLocation.ToString());
-
+				
 				FActorSpawnParameters SpawnParams;
 				SpawnParams.Owner = this;
-
-
+				SpawnParams.bNoFail = true;
+				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 				ActiveCollectibleActor = GetWorld()->SpawnActor<ACollectibleActor>(CollectibleClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
 				if (ensure(ActiveCollectibleActor.IsValid()))
 				{
+					LastSpawnLocation = SpawnLocation;
 					ActiveCollectibleActor->OnCollectedActor.AddUniqueDynamic(this, &ThisClass::HandleCollectibleCollected);
 				}
 			}

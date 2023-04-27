@@ -10,6 +10,7 @@
 
 class ASnakePawn;
 class USnakeBodyPartMoveComponent;
+class UMapOccupancyComponent;
 
 UCLASS()
 class SNAKEGAME_API ASnakeBodyPart : public AActor, public ISnakeBodyPartTypeInterface
@@ -20,10 +21,20 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
-	void SetSnakePawn(ASnakePawn* InPawnPtr);
+	void		SetMoveDir(const FVector& InMoveDirection);
+	FVector		GetMoveDirection() const;
+	void		SetSnakePawn(ASnakePawn* InPawnPtr);
+	ASnakePawn* GetSnakePawn() const;
+	
+	/** Enqueue a change direction action */
+	void							AddChangeDirAction(const FChangeDirectionAction& InChangeDirAction);
+	TArray<FChangeDirectionAction>	GetChangeDirectionQueue() const { return ChangeDirectionQueue; }
+	void							SetChangeDirQueue(const TArray<FChangeDirectionAction>& InChangeDirQueue) { ChangeDirectionQueue = InChangeDirQueue; }
+	void							SetChangeDirQueue(TArray<FChangeDirectionAction>&& InChangeDirQueue) { ChangeDirectionQueue = MoveTemp(InChangeDirQueue); }
+	
 	
 	// ISnakeBodyPartTypeInterface
-	virtual void				SetSnakeBodyPartType(ESnakeBodyPartType InBodyPartType) override { BodyPartType = BodyPartType; }
+	virtual void				SetSnakeBodyPartType(ESnakeBodyPartType InBodyPartType) override { BodyPartType = InBodyPartType; }
 	virtual ESnakeBodyPartType	GetSnakeBodyPartType() const override { return BodyPartType; };
 
 protected:
@@ -31,11 +42,6 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
-	UFUNCTION()
-	void HandleChangeDirectionDelegate(const FChangeDirectionAction& InNewChangeDirection);
-
-	void BindDelegates();
-	void UnbindDelegates();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SnakeGame|Body", meta=(AllowPrivateAccess=true))
 	ESnakeBodyPartType BodyPartType {};
@@ -44,9 +50,11 @@ private:
 	TObjectPtr<UStaticMeshComponent> StaticMeshComp{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<USnakeBodyPartMoveComponent> SnakeMovementComponent{};
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
+	TObjectPtr<UMapOccupancyComponent> MapOccupancyComponent{};
 
 
 	TWeakObjectPtr<ASnakePawn>		SnakePawnPtr{};
-	TQueue<FChangeDirectionAction>	ChangeDirectionQueue{};
+	TArray<FChangeDirectionAction>	ChangeDirectionQueue{};
 	float							HalfTileSize{};
 };
