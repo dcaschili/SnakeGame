@@ -263,8 +263,11 @@ void ASnakePawn::HandleCollectibleCollected(const FVector& InCollectibleLocation
 	
 	if (ensure(SnakeBodyPartSpawnerClass))
 	{
-		check(GetWorld());
-		GetWorld()->SpawnActor<ASnakeBodyPartSpawner>(SnakeBodyPartSpawnerClass, InCollectibleLocation, FQuat::Identity.Rotator());
+		UWorld* World = GetWorld();
+		if (ensure(World))
+		{
+			World->SpawnActor<ASnakeBodyPartSpawner>(SnakeBodyPartSpawnerClass, InCollectibleLocation, FRotator::ZeroRotator);
+		}
 	}
 }
 

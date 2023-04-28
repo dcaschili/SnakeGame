@@ -134,7 +134,7 @@ void AMapManager::Tick(float DeltaSeconds)
 						}
 						else
 						{
-							UGDTCDebugFunctionLibrary::DrawBoxDebug(GetWorld(), WorldLocation, FVector(1.0f, 1.0f, 1.0f) * (GetMapTileSize() / 2.0f));
+							//UGDTCDebugFunctionLibrary::DrawBoxDebug(GetWorld(), WorldLocation, FVector(1.0f, 1.0f, 1.0f) * (GetMapTileSize() / 2.0f));
 						}
 					}
 					

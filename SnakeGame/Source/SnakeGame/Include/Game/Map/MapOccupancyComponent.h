@@ -17,6 +17,9 @@ public:
 
 	void SetEnableContinuousTileOccupancyTest(bool bEnabled) { bEnableContinuousTileOccupancyTest = bEnabled; }
 
+	void ForceFreeOccupancy();
+	void ForceRefreshOccupancy();
+
 private: 
 	void HandleOccupancyTest();
 

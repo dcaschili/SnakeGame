@@ -42,6 +42,22 @@ void UMapOccupancyComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	HandleOccupancyTest();
 }
 
+void UMapOccupancyComponent::ForceFreeOccupancy()
+{
+	AMapManager* const MapManager = AMapManager::GetMapManager(this);
+
+	if (ensure(MapManager) && PreviousMapTileLocation.IsSet())
+	{
+		MapManager->ReduceTileOccupancy(PreviousMapTileLocation.GetValue());
+		PreviousMapTileLocation.Reset();
+	}
+}
+
+void UMapOccupancyComponent::ForceRefreshOccupancy()
+{
+	UpdateOccupancy();
+}
+
 void UMapOccupancyComponent::HandleOccupancyTest()
 {
 	if (IsOccupancyUpdateNeeded())
@@ -75,24 +91,23 @@ bool UMapOccupancyComponent::IsOccupancyUpdateNeeded() const
 void UMapOccupancyComponent::UpdateOccupancy()
 {
 	AMapManager* const MapManager = AMapManager::GetMapManager(this);
-
-	// Remove occupancy from previous tile
-	if (PreviousMapTileLocation.IsSet())
+	if (ensure(MapManager))
 	{
-		MapManager->ReduceTileOccupancy(PreviousMapTileLocation.GetValue());
-	}
+		// Remove occupancy from previous tile
+		ForceFreeOccupancy();
 
-	// Set occupancy in current tile
-	const AActor* const Owner = GetOwner();
-	check(Owner);
-	FIntVector2 NewMapLocation{};
-	if (ensure(UMapFunctionLibrary::GetMapTileFromWorldLocation(this, Owner->GetActorLocation(), NewMapLocation)))
-	{
-		MapManager->IncrementTileOccupancy(NewMapLocation);
-	}
+		// Set occupancy in current tile
+		const AActor* const Owner = GetOwner();
+		check(Owner);
+		FIntVector2 NewMapLocation{};
+		if (ensure(UMapFunctionLibrary::GetMapTileFromWorldLocation(this, Owner->GetActorLocation(), NewMapLocation)))
+		{
+			MapManager->IncrementTileOccupancy(NewMapLocation);
+		}
 
-	// store current tile location
-	PreviousMapTileLocation = NewMapLocation;
+		// store current tile location
+		PreviousMapTileLocation = NewMapLocation;
+	}
 }
 
 

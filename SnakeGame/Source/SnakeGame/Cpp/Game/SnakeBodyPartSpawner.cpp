@@ -16,15 +16,9 @@ ASnakeBodyPartSpawner::ASnakeBodyPartSpawner()
 	BoxCollisionComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("Box collision component."));	
 	RootComponent = BoxCollisionComponent;
 
-	const UGameConstants* GameConstants = UGameConstants::GetGameConstants(this);
-	if (!GameConstants)
-	{
-		static ConstructorHelpers::FObjectFinder<UGameConstants> DefaultAsset(TEXT("/Game/Data/GameConstants"));
-		GameConstants = DefaultAsset.Object;
-		check(GameConstants);
-	}
-
-	if (GameConstants)
+	static ConstructorHelpers::FObjectFinder<UGameConstants> DefaultAsset(TEXT("/Game/Data/GameConstants"));
+	const UGameConstants* GameConstants = DefaultAsset.Object;
+	if (ensure(GameConstants))
 	{
 		const float BoxExtent = GameConstants->TileSize / 2.0f;
 		BoxCollisionComponent->SetBoxExtent({ BoxExtent, BoxExtent, BoxExtent });

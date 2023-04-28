@@ -16,9 +16,12 @@ class SNAKEGAME_API ACollectibleActor : public AActor
 public:
 	ACollectibleActor();
 
-	FCollectedActorEvent OnCollectedActor{};
+	void DisableCollectible();
+	void EnableCollectible();
 
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
+
+	FCollectedActorEvent OnCollectedActor{};
 
 private:
 	UPROPERTY(VisibleDefaultsOnly, Category = "Snake|Components")

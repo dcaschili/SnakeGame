@@ -33,7 +33,9 @@ private:
 	void HandleCollectibleCollected(const FVector& InCollectibleLocation);
 
 	void SpawnCollectible();
+	
+	UPROPERTY()
+	TObjectPtr<ACollectibleActor>		ActiveCollectibleActor{};
 
-	TWeakObjectPtr<ACollectibleActor>	ActiveCollectibleActor{};
 	TOptional<FVector>					LastSpawnLocation{};
 };
