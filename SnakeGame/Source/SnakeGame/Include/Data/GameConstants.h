@@ -36,4 +36,10 @@ public:
 	*/
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Movement", meta = (UIMin = "1.0", ClampMin = "1.0", UIMax = "100.0", ClampMax = "100.0"))
 	float CenterReachedPercentageTolerance = 5.0f;
+
+	/**
+		Max movement speed used by head and snake body part.
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Movement", meta = (ClampMin = 1.0))
+	float MaxMovementSpeed = 500.0f;
 };

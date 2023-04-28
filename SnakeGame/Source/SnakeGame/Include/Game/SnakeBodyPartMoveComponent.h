@@ -22,8 +22,6 @@ public:
 	FVector GetMoveDirection() const { return MoveDirection; }
 
 private:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SnakeGame|Movement", meta=(AllowPrivateAccess=true))
-	float MaxMovementSpeed = 500.0f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SnakeGame|Movement", meta = (AllowPrivateAccess = true))
 	bool bUpdateControlRotation = false;
 

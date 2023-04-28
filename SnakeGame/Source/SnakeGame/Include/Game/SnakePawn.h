@@ -78,9 +78,6 @@ private:
 	TObjectPtr<UInputAction> MoveUpIA{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Inputs")
 	TObjectPtr<UInputMappingContext> InputMappingContext{};
-		
-	UPROPERTY(EditDefaultsOnly, Category = "Snake|Movement")
-	float MaxMovementSpeed = 500.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body", meta=(ClampMin=1, UIMin=1))
 	int32 InitialBodyPartsCount = 3;

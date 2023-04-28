@@ -93,6 +93,10 @@ void USnakeBodyPartMoveComponent::TickComponent(float DeltaTime, ELevelTick Tick
 		}
 	}
 
+	const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
+	ensure(GameConstants);
+	const float MaxMovementSpeed = GameConstants ? GameConstants->MaxMovementSpeed : 1.0f;
+
 	const FVector NewPos = CurrentPos + (MoveDirection * DeltaTime * MaxMovementSpeed);
 
 	GetOwner()->SetActorLocation(NewPos, true);
