@@ -11,7 +11,46 @@ bool UMapFunctionLibrary::GetMapTileFromWorldLocation(const UObject* InWorldCont
 	const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(InWorldContextObject);
 	check(GameConstants);
 
-	const int32 MapTileSize = GameConstants->TileSize;
+	const int32 WorldTileSize = GameConstants->TileSize;
+	const float HalfWorldTileSize = WorldTileSize / 2.0f;
+	const int32 WorldSize = WorldTileSize * GameConstants->MapSideTilesCount;
+	const float HalfWorldSize = WorldSize / 2.0f;
+
+	const int32 MapTileSize = 1;
+	const float HalfMapTileSize = MapTileSize / 2.0f;
+	const int32 MapSize = GameConstants->MapSideTilesCount;
+	const float HalfMapSize = MapSize / 2.0f;
+
+	// Move from world space to [0.0, 1.0] coordinates.
+	const float WorldXNormalized = (InLocation.X + HalfWorldSize) / WorldSize; // [0.0; 1.0]
+	ensure(WorldXNormalized >= 0.0 && WorldXNormalized <= 1.0);
+	// Remap in map space
+	const float MapXPosition = (WorldXNormalized * MapSize) - HalfMapTileSize; // [-HalfMapTileSize; MapSize - HalfMapTileSize] -> es -0.5; 9.5
+	ensure(MapXPosition >= -HalfMapTileSize && MapXPosition <= (MapSize - HalfMapTileSize));
+	// Round to take the center of the tile.
+	const int32 Row = FMath::RoundToInt(MapXPosition);
+
+
+	// Move from world space to [0.0, 1.0] coordinates.
+	const float WorldYNormalized = (InLocation.Y + HalfWorldSize) / WorldSize; // [0.0; 1.0]
+	ensure(WorldYNormalized >= 0.0 && WorldYNormalized <= 1.0);
+	// Remap in map space
+	const float MapYPosition = (WorldYNormalized * MapSize) - HalfMapTileSize; // [-HalfMapTileSize; MapSize - HalfMapTileSize] -> es -0.5; 9.5
+	ensure(MapYPosition >= -HalfMapTileSize && MapYPosition <= (MapSize - HalfMapTileSize));
+	// Round to take the center of the tile.
+	const int32 Col = FMath::RoundToInt(MapYPosition);
+
+	OutTileLocation.X = Col;
+	OutTileLocation.Y = Row;
+
+	if (Row < 0 || Col < 0 || Row >= GameConstants->MapSideTilesCount || Col >= GameConstants->MapSideTilesCount)
+	{
+		return false;
+	}
+
+	return true;
+
+	/*const int32 MapTileSize = GameConstants->TileSize;
 	const float HalfMapTileSize = MapTileSize / 2.0f;
 	const int32 MapSideTilesCount = GameConstants->MapSideTilesCount;
 	const float HalfMapSideTilesCount = MapSideTilesCount / 2.0f;
@@ -28,7 +67,7 @@ bool UMapFunctionLibrary::GetMapTileFromWorldLocation(const UObject* InWorldCont
 	}
 
 	OutTileLocation.X = Column;
-	OutTileLocation.Y = Row;
+	OutTileLocation.Y = Row;*/
 
 	return true;
 }

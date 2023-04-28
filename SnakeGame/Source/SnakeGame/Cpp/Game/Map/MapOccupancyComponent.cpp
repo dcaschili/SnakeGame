@@ -85,6 +85,10 @@ bool UMapOccupancyComponent::IsOccupancyUpdateNeeded() const
 		return false;
 	}
 
+	/*
+		If a previous tile map location exists and it is different than the current one, update the occupancy.
+		Otherwise update it only if the current position has a corresponding map position.
+	*/
 	return PreviousMapTileLocation.IsSet() ? (CurrentMapTileLocation != PreviousMapTileLocation.GetValue()) : bMapLocationExists;
 }
 
