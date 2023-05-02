@@ -5,8 +5,10 @@
 
 const UGameConstants* UGameConstants::GetGameConstants(const UObject* InWorldContextObject)
 {
-	USnakeGameInstance* const SnakeGameInstance = Cast<USnakeGameInstance>(UGameplayStatics::GetGameInstance(InWorldContextObject));
-	check(SnakeGameInstance);
-
-	return SnakeGameInstance->GetGameConstants();
+	if (USnakeGameInstance* const SnakeGameInstance = Cast<USnakeGameInstance>(UGameplayStatics::GetGameInstance(InWorldContextObject)))
+	{
+		return SnakeGameInstance->GetGameConstants();
+	}
+	
+	return nullptr;
 }

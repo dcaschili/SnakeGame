@@ -1,6 +1,7 @@
 #include "Game/CollectibleActor.h"
 
 #include "Components/StaticMeshComponent.h"
+#include "Game/Map/MapOccupancyComponent.h"
 
 ACollectibleActor::ACollectibleActor()
 	: Super()
@@ -11,6 +12,30 @@ ACollectibleActor::ACollectibleActor()
 		RootComponent = StaticMeshComp;
 		StaticMeshComp->SetGenerateOverlapEvents(true);
 	}
+
+	MapOccupancyComponent = CreateDefaultSubobject<UMapOccupancyComponent>(TEXT("MapOccupancyComponent"));
+}
+
+void ACollectibleActor::EnableCollectible()
+{
+	SetActorEnableCollision(true);
+	SetActorHiddenInGame(false);
+
+	if (ensure(MapOccupancyComponent))
+	{
+		MapOccupancyComponent->ForceRefreshOccupancy();
+	}
+}
+
+void ACollectibleActor::DisableCollectible()
+{
+	SetActorEnableCollision(false);
+	SetActorHiddenInGame(true);
+
+	if (ensure(MapOccupancyComponent))
+	{
+		MapOccupancyComponent->ForceFreeOccupancy();
+	}
 }
 
 void ACollectibleActor::NotifyActorBeginOverlap(AActor* OtherActor)
@@ -19,7 +44,7 @@ void ACollectibleActor::NotifyActorBeginOverlap(AActor* OtherActor)
 
 	if (HasAuthority())
 	{
-		OnCollectedActor.Broadcast();
-		Destroy();
+		OnCollectedActor.Broadcast(GetActorLocation());
+		//Destroy();
 	}
 }

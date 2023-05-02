@@ -15,6 +15,11 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	void SetEnableContinuousTileOccupancyTest(bool bEnabled) { bEnableContinuousTileOccupancyTest = bEnabled; }
+
+	void ForceFreeOccupancy();
+	void ForceRefreshOccupancy();
+
 private: 
 	void HandleOccupancyTest();
 

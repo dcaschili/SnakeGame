@@ -3,19 +3,22 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Camera/CameraComponent.h"
-#include "InputMappingContext.h"
 #include "InputAction.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "SnakeLog.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
-#include "GameFramework/PlayerController.h"
 #include "Engine/LocalPlayer.h"
-#include "TimerManager.h"
-#include "SnakeGameInstance.h"
-#include "Data/GameConstants.h"
+#include "Game/EndGameCollisionDetectionComponent.h"
+#include "Game/Map/MapOccupancyComponent.h"
+#include "Game/Map/MapFunctionLibrary.h"
+#include "Game/SnakeBodyPartMoveComponent.h"
+#include "Game/SnakeBodyPart.h"
+#include "Game/SnakeBodyPartSpawner.h"
+#include "Game/CollectiblesSpawner.h"
+#include "SnakeGameGameModeBase.h"
 
+#include "TimerManager.h"
 
 #if !UE_BUILD_SHIPPING
 #include "DrawDebugHelpers.h"
@@ -42,6 +45,7 @@ ASnakePawn::ASnakePawn()
 	RootComponent = StaticMeshComp;
 	StaticMeshComp->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
 	StaticMeshComp->CastShadow = false;
+	StaticMeshComp->SetGenerateOverlapEvents(true);
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
 	if (SpringArmComp)
@@ -52,7 +56,8 @@ ASnakePawn::ASnakePawn()
 		SpringArmComp->bInheritRoll = false;
 		SpringArmComp->TargetArmLength = 800.0f;
 		// Needed to reduce the abrupt change of direction due to the "snap to tile" movement
-		SpringArmComp->bEnableCameraLag = true;
+		// TODO: Do i need it with fixed camera?
+		// SpringArmComp->bEnableCameraLag = true;
 	}
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
@@ -60,6 +65,14 @@ ASnakePawn::ASnakePawn()
 	{
 		CameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);
 	}
+
+	EndGameCollisionComponent = CreateDefaultSubobject<UEndGameCollisionDetectionComponent>(TEXT("EndGameCollisionDetectionComponent"));
+	MapOccupancyComponent = CreateDefaultSubobject<UMapOccupancyComponent>(TEXT("MapOccupancyComponent"));
+	if (ensure(MapOccupancyComponent))
+	{
+		MapOccupancyComponent->SetEnableContinuousTileOccupancyTest(true);
+	}
+	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));
 }
 
 void ASnakePawn::Tick(float DeltaSeconds)
@@ -89,66 +102,54 @@ void ASnakePawn::Tick(float DeltaSeconds)
 	}
 #endif // !UE_BUILD_SHIPPING
 
+	FVector CurrentPos = GetActorLocation();
 
-	const FVector CurrentPos = GetActorLocation();
-	FVector NewPos = CurrentPos + (MoveDirection * DeltaSeconds * MaxMovementSpeed);
-			
-	// Center in tile
-	if (bDirectionChanged && PreviousDirection.IsSet())
+	if (PendingMoveDirection.IsSet())
 	{
-		bDirectionChanged = false;
+		// Check if the snake is near the center of the tile to allow for the change in direction
+		// If this is basically the center of the tile, allow the change in direction. 
+		// Otherwise let's proceed in this same direction until we reach a center.	
+		if(UMapFunctionLibrary::IsWorldLocationNearCurrentTileCenter(this, CurrentPos))
+		{ 
+			MoveDirection = PendingMoveDirection.GetValue();
+			PendingMoveDirection.Reset();
 
-		// Avoid sharp angle during direction change.
-		const FVector PreviousDir = PreviousDirection.GetValue();
-		FVector NewDir = MoveDirection + PreviousDir;
-		NewDir.Normalize();
-		NewPos = CurrentPos + (NewDir * DeltaSeconds * MaxMovementSpeed);
+			check(SnakeMovementComponent);
+			SnakeMovementComponent->ChangeMoveDirection(MoveDirection);
 
-		if (FMath::IsNearlyZero(MoveDirection.X))
-		{
-			int32 TmpX = FMath::Abs(CurrentPos.X);
-			int32 SignX = FMath::Sign(CurrentPos.X);
+			FChangeDirectionAction ChangeDirectionAction{};
+			ChangeDirectionAction.Direction = MoveDirection;
+			ChangeDirectionAction.Location = CurrentPos;
 
-			// Center on the vertical coordinate
-			/*
-				Take the current tile top left coordinate to avoid "jump to next tile" effect.
-				If the coordinate is > 0.5, the rounding will move to the next tile.
-			*/
-			int32 XValue = FMath::Floor(TmpX);
-			// TODO: 100 must be a config value, move to game constants data asset.
-			int32 CurrentTileXValue = XValue - (XValue % TileSize) + HalfTileSize;
-			//NewPos.X = CurrentTileXValue + 50 * FMath::Sign(NewPos.X);
-			//NewPos.X = CurrentTileXValue + 50;
-			NewPos.X = CurrentTileXValue * SignX;
-		}
-		else if (FMath::IsNearlyZero(MoveDirection.Y))
-		{
-			int32 TmpY = FMath::Abs(CurrentPos.Y);
-			int32 SignY = FMath::Sign(CurrentPos.Y);
+			for (ASnakeBodyPart* const BodyPart : SnakeBody)
+			{
+				if (ensure(BodyPart))
+				{
+					BodyPart->AddChangeDirAction(ChangeDirectionAction);
+				}
+			}
 
-			// Center on the horizontal coordinate
-			int32 YValue = FMath::Floor(TmpY);
-			// Take the current tile top left coordinate.
-			// TODO: 100 must be a config value, move to game constants data asset.
-			int32 CurrentTileYValue = YValue - (YValue % TileSize) + HalfTileSize;
-			//NewPos.Y = CurrentTileYValue + 50 * FMath::Sign(NewPos.Y);
-			NewPos.Y = CurrentTileYValue * SignY;
-		}
-		else
-		{
-			// Something wrong in the movement direction setup
-			UE_LOG(SnakeLogCategoryGame, Warning, TEXT("Something went wrong in the MovementDirection setup: %s"), *MoveDirection.ToString());
-			ensure(false);
+			OnChangeDirection.Broadcast(ChangeDirectionAction);
 		}
 	}
+}
 
-	SetActorLocation(NewPos, true);
-
-	if (Controller)
+void ASnakePawn::AddSnakeBodyPart(ASnakeBodyPart* InSnakeBodyPart)
+{
+	if (InSnakeBodyPart)
 	{
-		FRotator FacingDir = UKismetMathLibrary::FindLookAtRotation(NewPos, NewPos + MoveDirection * 500.0f);
-		Controller->SetControlRotation(FacingDir);
+		SnakeBody.Add(InSnakeBodyPart);
+		UE_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("Added new snake body part!"));
 	}
+}
+
+FVector ASnakePawn::GetMoveDirection() const
+{
+	if (ensure(SnakeMovementComponent))
+	{
+		return SnakeMovementComponent->GetMoveDirection();
+	}
+	return FVector::RightVector;
 }
 
 void ASnakePawn::BeginPlay()
@@ -175,12 +176,33 @@ void ASnakePawn::BeginPlay()
 		ensure(false);
 	}
 
-	const USnakeGameInstance* const GameInstance = Cast<USnakeGameInstance>(UGameplayStatics::GetGameInstance(this));
-	check(GameInstance);
-	const UGameConstants* const GameConstants = GameInstance->GetGameConstants();
-	check(GameConstants);
-	TileSize = GameConstants->TileSize;
-	HalfTileSize = FMath::RoundToInt32(TileSize / 2.0f);
+	// Spawn initial body part spawner
+	if (ensure(SnakeBodyPartSpawnerClass))
+	{
+		FVector SpawnLocation{};
+		if (ensure(UMapFunctionLibrary::AlignWorldLocationToTileCenter(this, GetActorLocation(), SpawnLocation)))
+		{
+			UWorld* const World = GetWorld();
+			if (ensure(World))
+			{
+				SpawnLocation.Z = GetActorLocation().Z;
+				ASnakeBodyPartSpawner* BodyPartSpawner = World->SpawnActor<ASnakeBodyPartSpawner>(SnakeBodyPartSpawnerClass, SpawnLocation, FRotator::ZeroRotator);
+				if (ensure(BodyPartSpawner) && InitialBodyPartsCount > 1)
+				{
+					BodyPartSpawner->SetBodyPartToSpawnCount(InitialBodyPartsCount);
+				}
+			}
+		}
+	}
+
+	BindEvents();
+}
+
+void ASnakePawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	UnbindEvents();
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void ASnakePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -213,17 +235,51 @@ void ASnakePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	}
 }
 
+void ASnakePawn::BindEvents()
+{
+	if (ASnakeGameGameModeBase* GameMode = Cast<ASnakeGameGameModeBase>(UGameplayStatics::GetGameMode(this)))
+	{
+		if (ACollectiblesSpawner* const Spawner = GameMode->GetCollectiblesSpawner())
+		{
+			Spawner->OnCollectibleCollected.AddUniqueDynamic(this, &ThisClass::HandleCollectibleCollected);
+		}
+	}
+}
+
+void ASnakePawn::UnbindEvents()
+{
+	if (ASnakeGameGameModeBase* GameMode = Cast<ASnakeGameGameModeBase>(UGameplayStatics::GetGameMode(this)))
+	{
+		if (ACollectiblesSpawner* const Spawner = GameMode->GetCollectiblesSpawner())
+		{
+			Spawner->OnCollectibleCollected.RemoveDynamic(this, &ThisClass::HandleCollectibleCollected);
+		}
+	}
+}
+
+void ASnakePawn::HandleCollectibleCollected(const FVector& InCollectibleLocation)
+{
+	UE_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("ASnakePawn - Spawning body part spawner!"));
+	
+	if (ensure(SnakeBodyPartSpawnerClass))
+	{
+		UWorld* World = GetWorld();
+		if (ensure(World))
+		{
+			World->SpawnActor<ASnakeBodyPartSpawner>(SnakeBodyPartSpawnerClass, InCollectibleLocation, FRotator::ZeroRotator);
+		}
+	}
+}
+
 void ASnakePawn::HandleMoveRightIA(const FInputActionInstance& InputActionInstance)
 {
 	if (InputActionInstance.GetValue().IsNonZero())
 	{
 		// Can't change direction left/right without first going up or down.
-		if (FMath::IsNearlyZero(MoveDirection.Y))
+		if (!PendingMoveDirection.IsSet() && FMath::IsNearlyZero(MoveDirection.Y))
 		{
 			const float Amount = InputActionInstance.GetValue().Get<float>();
-			PreviousDirection = MoveDirection;
-			MoveDirection = FVector(0.0f, Amount, 0.0f);
-			bDirectionChanged = true;
+			PendingMoveDirection = FVector(0.0f, Amount, 0.0f);
 		}
 	}
 }
@@ -233,12 +289,11 @@ void ASnakePawn::HandleMoveUpIA(const FInputActionInstance& InputActionInstance)
 	if (InputActionInstance.GetValue().IsNonZero())
 	{
 		// Can't change direction up/down without first going left or right.
-		if (FMath::IsNearlyZero(MoveDirection.X))
+		if (!PendingMoveDirection.IsSet() && FMath::IsNearlyZero(MoveDirection.X))
 		{
 			const float Amount = InputActionInstance.GetValue().Get<float>();
-			PreviousDirection = MoveDirection;
-			MoveDirection = FVector(Amount, 0.0f, 0.0f);
-			bDirectionChanged = true;
+			PendingMoveDirection = FVector(Amount, 0.0f, 0.0f);
 		}
 	}
 }
+
