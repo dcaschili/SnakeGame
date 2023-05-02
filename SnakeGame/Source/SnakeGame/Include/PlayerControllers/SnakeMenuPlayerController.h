@@ -7,6 +7,13 @@
 class UGDTUIUWSimpleButtonListPage;
 class UGDTUIUWBasePageLayout;
 
+UENUM(BlueprintType)
+enum class EMenuAction : uint8
+{
+	kStart     UMETA(DisplayName = "Start"),
+	kExit      UMETA(DisplayName = "Exit")
+};
+
 UCLASS()
 class SNAKEGAME_API ASnakeMenuPlayerController : public ASnakeGamePlayerController
 {
@@ -27,6 +34,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|UI")
 	TSubclassOf<UGDTUIUWBasePageLayout> BasePageLayoutClass{};
+	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Actions")
+	TMap<FName, EMenuAction> ButtonIdToMenuAction{};
 
 private:
 	UFUNCTION()

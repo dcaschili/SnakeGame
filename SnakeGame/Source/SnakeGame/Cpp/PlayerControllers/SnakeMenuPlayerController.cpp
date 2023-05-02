@@ -61,4 +61,26 @@ void ASnakeMenuPlayerController::UnbindEvents()
 void ASnakeMenuPlayerController::HandleButtonClicked(const FName& InButtonId)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, *FString::Printf(TEXT("Button clicked: %s"), *InButtonId.ToString()));
+	if (EMenuAction* Action = ButtonIdToMenuAction.Find(InButtonId))
+	{
+		switch (*Action)
+		{
+		case EMenuAction::kStart:
+			break;
+		case EMenuAction::kExit:
+			UKismetSystemLibrary::QuitGame(this, this, EQuitPreference::Quit, false);
+			break;
+		default:
+			break;
+		}
+	}
+	else
+	{
+		FString Msg = FString::Printf(TEXT("Missing menu action for button: %s"), *InButtonId.ToString());
+		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, *Msg);
+		UE_LOG(SnakeLogCategoryUI, Error, TEXT("%s"), *Msg);
+		ensure(false);
+	}
+
+
 }
