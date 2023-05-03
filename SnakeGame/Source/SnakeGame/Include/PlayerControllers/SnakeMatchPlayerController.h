@@ -11,6 +11,9 @@ class SNAKEGAME_API ASnakeMatchPlayerController : public ASnakeGamePlayerControl
 {
     GENERATED_BODY()
 
+public:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -18,6 +21,11 @@ protected:
 	TSubclassOf<UGDTUIUWBasePage> HUDMatchPageClass{};
 
 private:
+	UFUNCTION()
+	void HandleScoreChanged();
+
+	void UpdatePageScore();
+
 	UPROPERTY()
 	TObjectPtr<UGDTUIUWBasePage> HUDPage{};
 };
