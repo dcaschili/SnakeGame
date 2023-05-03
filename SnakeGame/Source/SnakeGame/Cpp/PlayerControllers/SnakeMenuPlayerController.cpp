@@ -21,21 +21,16 @@ void ASnakeMenuPlayerController::BeginPlay()
 	SetInputMode(InputModeUIOnly);
 
 	// Setup layout and page
-	if (ensure(BasePageLayoutClass))
+	if (BaseLayoutPage)
 	{
-		BasePageLayoutPage = CreateWidget<UGDTUIUWBasePageLayout>(this, BasePageLayoutClass);
-		BasePageLayoutPage->AddToViewport();
-		if (BasePageLayoutPage)
+		if (MenuPageClass)
 		{
-			if (MenuPageClass)
-			{
-				ButtonListPage = Cast<UGDTUIUWSimpleButtonListPage>(BasePageLayoutPage->PushWidget(MenuPageClass, EPageLayoutStackType::Main));
-			}
-			else
-			{
-				UE_LOG(SnakeLogCategoryUI, Error, TEXT("ASnakeMenuPlayerController - Missing Menu Page class"));
-				ensure(false);
-			}
+			ButtonListPage = Cast<UGDTUIUWSimpleButtonListPage>(BaseLayoutPage->PushWidget(MenuPageClass, EPageLayoutStackType::Main));
+		}
+		else
+		{
+			UE_LOG(SnakeLogCategoryUI, Error, TEXT("ASnakeMenuPlayerController - Missing Menu Page class"));
+			ensure(false);
 		}
 	}
 

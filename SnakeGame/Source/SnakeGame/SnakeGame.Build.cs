@@ -10,7 +10,13 @@ public class SnakeGame : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "EnhancedInput", "GameDevToolboxCore", "GameDevToolboxUI", "UMG" });
+		PrivateDependencyModuleNames.AddRange(new string[] { 
+            "EnhancedInput",
+            "GameDevToolboxCore",
+            "GameDevToolboxUI",
+            "UMG",
+            "CommonUI"
+        });
 
 		PrivateIncludePaths.Add("./SnakeGame/Include/");
 

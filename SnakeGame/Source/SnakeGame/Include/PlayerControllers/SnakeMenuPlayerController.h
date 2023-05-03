@@ -32,8 +32,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="SnakeGame|UI")
 	TSubclassOf<UGDTUIUWSimpleButtonListPage> MenuPageClass{};
 
-	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|UI")
-	TSubclassOf<UGDTUIUWBasePageLayout> BasePageLayoutClass{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Actions")
 	TMap<FName, EMenuAction> ButtonIdToMenuAction{};
 
@@ -43,6 +41,4 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UGDTUIUWSimpleButtonListPage> ButtonListPage{};
-	UPROPERTY()
-	TObjectPtr<UGDTUIUWBasePageLayout> BasePageLayoutPage{};
 };
