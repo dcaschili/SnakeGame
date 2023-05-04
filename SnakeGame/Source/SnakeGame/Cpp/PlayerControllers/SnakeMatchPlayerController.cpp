@@ -7,6 +7,7 @@
 #include "SnakeGamePlayerState.h"
 #include "Data/Model/PlayerScoreDataModel.h"
 #include "Data/Model/GameDataModelDrivenInterface.h"
+#include "UI/Pages/GameOverPage.h"
 
 #if !UE_BUILD_SHIPPING
 #include "Engine.h"
@@ -38,7 +39,7 @@ void ASnakeMatchPlayerController::BeginPlay()
 	{
 		if (HUDMatchPageClass)
 		{
-			HUDPage = Cast<UGDTUIUWBasePage>(BaseLayoutPage->PushWidget(HUDMatchPageClass, EPageLayoutStackType::GameUI));
+			BaseLayoutPage->PushWidget(HUDMatchPageClass, EPageLayoutStackType::GameUI);
 
 			UpdatePageScore();
 		}
@@ -53,6 +54,28 @@ void ASnakeMatchPlayerController::BeginPlay()
 	}
 }
 
+void ASnakeMatchPlayerController::HandleEndGame()
+{
+	if (GameOverPageClass)
+	{
+		if (ensure(BaseLayoutPage))
+		{
+			UGameOverPage* const GameOverPage = Cast<UGameOverPage>(BaseLayoutPage->PushWidget(GameOverPageClass, EPageLayoutStackType::GameUI));
+			if (GameOverPage)
+			{
+				// Record to event
+
+				// Setup model.
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(SnakeLogCategoryUI, Warning, TEXT("ASnakeMatchPlayerController - Missing game over class!"));
+		ensure(false);
+	}
+}
+
 void ASnakeMatchPlayerController::HandleScoreChanged()
 {
 	UpdatePageScore();
@@ -60,11 +83,12 @@ void ASnakeMatchPlayerController::HandleScoreChanged()
 
 void ASnakeMatchPlayerController::UpdatePageScore()
 {
-	if (HUDPage && PlayerState)
+	if (PlayerState && BaseLayoutPage)
 	{
-		if (IGameDataModelDrivenInterface* const Interface = Cast<IGameDataModelDrivenInterface>(HUDPage))
+		UCommonActivatableWidget* const ActivePage = BaseLayoutPage->GetActiveWidget(EPageLayoutStackType::GameUI);
+		if (IGameDataModelDrivenInterface* const Interface = Cast<IGameDataModelDrivenInterface>(ActivePage))
 		{
-			if (UPlayerScoreDataModel* const PlayerScoreDataModel = NewObject<UPlayerScoreDataModel>(HUDPage))
+			if (UPlayerScoreDataModel* const PlayerScoreDataModel = NewObject<UPlayerScoreDataModel>(ActivePage))
 			{
 				PlayerScoreDataModel->CurrentScore = FMath::RoundToInt(PlayerState->GetScore());
 				Interface->SetDataModel(PlayerScoreDataModel);

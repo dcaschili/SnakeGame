@@ -4,13 +4,18 @@
 
 #include "PlayerScoreDataModel.generated.h"
 
+class ASnakeGamePlayerState;
+
 UCLASS(BlueprintType)
 class SNAKEGAME_API UPlayerScoreDataModel : public UGameDataModel
 {
     GENERATED_BODY()
 public:
+
 	UPROPERTY(BlueprintReadOnly, Category = "SnakeGame|DataModel")
 	int32 CurrentScore = -1;
 	UPROPERTY(BlueprintReadOnly, Category = "SnakeGame|DataModel")
 	int32 BestScore = -1;
+	UPROPERTY(BlueprintReadOnly, Category = "SnakeGame|DataModel")
+	bool bIsBestScore = false;
 };

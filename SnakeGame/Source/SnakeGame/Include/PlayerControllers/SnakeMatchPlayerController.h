@@ -5,6 +5,7 @@
 #include "SnakeMatchPlayerController.generated.h"
 
 class UGDTUIUWBasePage;
+class UGameOverPage;
 
 UCLASS()
 class SNAKEGAME_API ASnakeMatchPlayerController : public ASnakeGamePlayerController
@@ -19,13 +20,15 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|UI")
 	TSubclassOf<UGDTUIUWBasePage> HUDMatchPageClass{};
+	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|UI")
+	TSubclassOf<UGameOverPage> GameOverPageClass{};
 
 private:
+	UFUNCTION()
+	void HandleEndGame();
+
 	UFUNCTION()
 	void HandleScoreChanged();
 
 	void UpdatePageScore();
-
-	UPROPERTY()
-	TObjectPtr<UGDTUIUWBasePage> HUDPage{};
 };
