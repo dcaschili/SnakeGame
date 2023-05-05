@@ -4,6 +4,9 @@
 #include "Pages/GDTUIUWBasePageLayout.h"
 #include "Blueprint/UserWidget.h"
 #include "SnakeLog.h"
+#include "SnakeGameLocalPlayer.h"
+#include "Kismet/GameplayStatics.h"
+#include "Data/PlayerProfileSaveGame.h"
 
 #include "Engine.h"
 
@@ -16,6 +19,25 @@ void ASnakeMenuPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReaso
 void ASnakeMenuPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// load savegame.
+	if (IsPrimaryPlayer())
+	{
+		USnakeGameLocalPlayer* const SnakeGameLocalPlayer = Cast<USnakeGameLocalPlayer>(GetLocalPlayer());
+		if (SnakeGameLocalPlayer && SnakeGameLocalPlayer->GetNeedsSaveGameLoad())
+		{
+			UE_LOG(SnakeLogCategorySave, Log, TEXT("Loading Player profile savegame."));
+			UPlayerProfileSaveGame* ProfileSaveGame = Cast<UPlayerProfileSaveGame>(UGameplayStatics::LoadGameFromSlot(UPlayerProfileSaveGame::PlayerProfileSlotName, 0));
+			if (!ProfileSaveGame)
+			{
+				UE_LOG(SnakeLogCategorySave, Log, TEXT("Can't find player profile savegame! Creating a new savegame file!"));
+				ProfileSaveGame = Cast<UPlayerProfileSaveGame>(UGameplayStatics::CreateSaveGameObject(UPlayerProfileSaveGame::StaticClass()));
+			}
+
+			SnakeGameLocalPlayer->SetPlayerProfileSaveGame(ProfileSaveGame);
+		}
+	}
+
 
 	FInputModeUIOnly InputModeUIOnly{};
 	SetInputMode(InputModeUIOnly);

@@ -6,3 +6,4 @@ DEFINE_LOG_CATEGORY(SnakeLogCategorySpawner);
 DEFINE_LOG_CATEGORY(SnakeLogCategorySnakeBody);
 DEFINE_LOG_CATEGORY(SnakeLogCategoryUI);
 DEFINE_LOG_CATEGORY(SnakeLogCategoryScore);
+DEFINE_LOG_CATEGORY(SnakeLogCategorySave);
