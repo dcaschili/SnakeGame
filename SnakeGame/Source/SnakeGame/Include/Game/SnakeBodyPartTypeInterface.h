@@ -16,4 +16,6 @@ class SNAKEGAME_API ISnakeBodyPartTypeInterface
 public:
     virtual void SetSnakeBodyPartType(ESnakeBodyPartType InBodyPartType) = 0;
     virtual ESnakeBodyPartType GetSnakeBodyPartType() const = 0;
+
+	virtual bool IsSnakeTail() const { return GetSnakeBodyPartType() == ESnakeBodyPartType::kTail; }
 };

@@ -14,6 +14,7 @@ public:
     USnakeBodyPartMoveComponent();
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void ChangeMoveDirection(const FVector& InNewDirection);
@@ -22,6 +23,9 @@ public:
 	FVector GetMoveDirection() const { return MoveDirection; }
 
 private:
+	UFUNCTION()
+	void HandleEndGameOverlap();
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SnakeGame|Movement", meta = (AllowPrivateAccess = true))
 	bool bUpdateControlRotation = false;
 
@@ -31,5 +35,5 @@ private:
 	FVector						MoveDirection = FVector::RightVector;
 	float						HalfTileSize{};
 	int32						TileSize{};
-
+	bool						bIsMovementEnabled = true;
 }; 

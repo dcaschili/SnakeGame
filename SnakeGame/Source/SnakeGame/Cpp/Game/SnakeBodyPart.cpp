@@ -4,7 +4,7 @@
 #include "Game/SnakePawn.h"
 #include "Game/Map/MapFunctionLibrary.h"
 #include "Data/GameConstants.h"
-#include "Game/SnakeBodyPartMoveComponent.h"
+#include "Game/Components/SnakeBodyPartMoveComponent.h"
 #include "Game/Map/MapOccupancyComponent.h"
 
 ASnakeBodyPart::ASnakeBodyPart()
@@ -106,4 +106,5 @@ void ASnakeBodyPart::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 }
+
 

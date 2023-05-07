@@ -1,14 +1,14 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include "Game/TriggerEndGameInterface.h"
 
 #include "MapBorderActor.generated.h"
 
 class UStaticMeshComponent;
-class UEndGameCollisionDetectionComponent;
 
 UCLASS()
-class SNAKEGAME_API AMapBorderActor : public AActor
+class SNAKEGAME_API AMapBorderActor : public AActor, public ITriggerEndGameInterface
 {
     GENERATED_BODY()
 public:

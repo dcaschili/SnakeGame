@@ -1,4 +1,4 @@
-#include "Game/SnakeBodyPartMoveComponent.h"
+#include "Game/Components/SnakeBodyPartMoveComponent.h"
 
 #include "Data/GameConstants.h"
 #include "SnakeLog.h"
@@ -6,6 +6,9 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/Controller.h"
+#include "Kismet/GameplayStatics.h"
+#include "Game/SnakePawn.h"
+#include "Game/Components/EndGameOverlapDetectionComponent.h"
 
 USnakeBodyPartMoveComponent::USnakeBodyPartMoveComponent()
 	: Super()
@@ -42,6 +45,29 @@ void USnakeBodyPartMoveComponent::BeginPlay()
 			check(false);
 		}
 	}
+
+	// TODO: Add support for local/online multiplayer (more than one snakepawn)
+	// Register to endgame event.
+	ASnakePawn* const SnakePawn = Cast<ASnakePawn>(UGameplayStatics::GetActorOfClass(this, ASnakePawn::StaticClass()));
+	UEndGameOverlapDetectionComponent* const EndGameOverlapDetection = SnakePawn ? SnakePawn->GetEndGameOverlapDetectionComponent() : nullptr;
+	if (EndGameOverlapDetection)
+	{
+		EndGameOverlapDetection->OnEndGameOverlap.AddUniqueDynamic(this, &ThisClass::HandleEndGameOverlap);
+	}
+
+}
+
+void USnakeBodyPartMoveComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// unbind from endgame event.
+	ASnakePawn* const SnakePawn = Cast<ASnakePawn>(UGameplayStatics::GetActorOfClass(this, ASnakePawn::StaticClass()));
+	UEndGameOverlapDetectionComponent* const EndGameOverlapDetection = SnakePawn ? SnakePawn->GetEndGameOverlapDetectionComponent() : nullptr;
+	if (EndGameOverlapDetection)
+	{
+		EndGameOverlapDetection->OnEndGameOverlap.RemoveDynamic(this, &ThisClass::HandleEndGameOverlap);
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void USnakeBodyPartMoveComponent::ChangeMoveDirection(const FVector& InNewDirection)
@@ -51,9 +77,17 @@ void USnakeBodyPartMoveComponent::ChangeMoveDirection(const FVector& InNewDirect
 	bDirectionChanged = true;
 }
 
+void USnakeBodyPartMoveComponent::HandleEndGameOverlap()
+{
+	bIsMovementEnabled = false;
+	UE_LOG(SnakeLogCategoryGame, Verbose, TEXT("USnakeBodyPartMoveComponent - Stop movement!"));
+}
+
 void USnakeBodyPartMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
+	if (!bIsMovementEnabled) return;
 
 	check(GetOwner());
 	FVector CurrentPos = GetOwner()->GetActorLocation();

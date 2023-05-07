@@ -20,6 +20,9 @@ public:
 
 	void SetBodyPartToSpawnCount(int32 InBodyPartToSpawnCount);
 
+protected:
+	virtual void BeginPlay() override;
+
 private:
 
 	void SpawnBodyPart(ASnakePawn* InSnakePawn, const FVector& InMoveDirection, const TArray<FChangeDirectionAction>& InChangeDirectionQueue = {});
@@ -30,5 +33,6 @@ private:
 	TSubclassOf<ASnakeBodyPart> SnakeBodyPartClass{};
 
 	int32 BodyPartToSpawnCount = 1;
+	int32 NoCollisionBodyPartsCount = 0;
 	bool bSpawnCompleted = false;
 };

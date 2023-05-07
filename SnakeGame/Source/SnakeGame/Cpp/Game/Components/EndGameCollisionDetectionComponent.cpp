@@ -1,4 +1,4 @@
-#include "Game/EndGameCollisionDetectionComponent.h"
+#include "Game/Components/EndGameCollisionDetectionComponent.h"
 
 #include "Components/StaticMeshComponent.h"
 #include "SnakeLog.h"

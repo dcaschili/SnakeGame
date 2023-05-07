@@ -17,6 +17,7 @@ class UMapOccupancyComponent;
 class USnakeBodyPartMoveComponent;
 class ASnakeBodyPart;
 class ASnakeBodyPartSpawner;
+class UEndGameOverlapDetectionComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeDirectionDelegate, const FChangeDirectionAction&, NewDirectionAction);
 
@@ -37,6 +38,8 @@ public:
 	void AddSnakeBodyPart(ASnakeBodyPart* InSnakeBodyPart);
 
 	FVector GetMoveDirection() const; 
+
+	FORCEINLINE UEndGameOverlapDetectionComponent* GetEndGameOverlapDetectionComponent() const { return EndGameOverlapComponent; }
 
 	FChangeDirectionDelegate OnChangeDirection{};
 
@@ -65,8 +68,8 @@ private:
 	TObjectPtr<USpringArmComponent> SpringArmComp{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UCameraComponent> CameraComp{};
-	UPROPERTY(VisibleAnywhere, Category = "Snake|Components")
-	TObjectPtr<UEndGameCollisionDetectionComponent> EndGameCollisionComponent{};
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
+	TObjectPtr<UEndGameOverlapDetectionComponent> EndGameOverlapComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UMapOccupancyComponent> MapOccupancyComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
@@ -90,9 +93,7 @@ private:
 	TArray<ASnakeBodyPart*> SnakeBody{};
 
 	FVector				MoveDirection = FVector::RightVector;
-	//TOptional<FVector>	PreviousDirection{};
 	TOptional<FVector>	PendingMoveDirection{};
-	//bool				bDirectionChanged = false;
 	int32				TileSize = 0;
 	int32				HalfTileSize = 0;
 	float				DistanceFromTileCenterTolerance = 0.0f;
@@ -100,4 +101,5 @@ private:
 #if !UE_BUILD_SHIPPING
 	FTimerHandle SnakePositionDebuggerTimerHandle{};
 #endif
+
 };

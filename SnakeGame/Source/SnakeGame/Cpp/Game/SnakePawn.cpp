@@ -9,14 +9,14 @@
 #include "SnakeLog.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/LocalPlayer.h"
-#include "Game/EndGameCollisionDetectionComponent.h"
 #include "Game/Map/MapOccupancyComponent.h"
 #include "Game/Map/MapFunctionLibrary.h"
-#include "Game/SnakeBodyPartMoveComponent.h"
+#include "Game/Components/SnakeBodyPartMoveComponent.h"
 #include "Game/SnakeBodyPart.h"
 #include "Game/SnakeBodyPartSpawner.h"
 #include "Game/CollectiblesSpawner.h"
 #include "SnakeGameGameModeBase.h"
+#include "Game/Components/EndGameOverlapDetectionComponent.h"
 
 #include "TimerManager.h"
 
@@ -55,9 +55,6 @@ ASnakePawn::ASnakePawn()
 		SpringArmComp->bInheritYaw = false;
 		SpringArmComp->bInheritRoll = false;
 		SpringArmComp->TargetArmLength = 800.0f;
-		// Needed to reduce the abrupt change of direction due to the "snap to tile" movement
-		// TODO: Do i need it with fixed camera?
-		// SpringArmComp->bEnableCameraLag = true;
 	}
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
@@ -66,7 +63,7 @@ ASnakePawn::ASnakePawn()
 		CameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 
-	EndGameCollisionComponent = CreateDefaultSubobject<UEndGameCollisionDetectionComponent>(TEXT("EndGameCollisionDetectionComponent"));
+	EndGameOverlapComponent = CreateDefaultSubobject<UEndGameOverlapDetectionComponent>(TEXT("EndGameOverlapDetectionComponent"));
 	MapOccupancyComponent = CreateDefaultSubobject<UMapOccupancyComponent>(TEXT("MapOccupancyComponent"));
 	if (ensure(MapOccupancyComponent))
 	{

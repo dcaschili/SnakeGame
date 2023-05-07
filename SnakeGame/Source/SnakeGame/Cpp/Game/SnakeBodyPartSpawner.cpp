@@ -49,8 +49,7 @@ void ASnakeBodyPartSpawner::NotifyActorEndOverlap(AActor* OtherActor)
 			{
 				if (ISnakeBodyPartTypeInterface* Interface = Cast<ISnakeBodyPartTypeInterface>(OtherActor))
 				{
-					ESnakeBodyPartType BodyPartType = Interface->GetSnakeBodyPartType();
-					if (BodyPartType == ESnakeBodyPartType::kTail)
+					if(Interface->IsSnakeTail())
 					{
 						UE_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("ASnakeBodyPartSpawner - Snake's tail found, spawn new body part!"));
 						
@@ -89,6 +88,14 @@ void ASnakeBodyPartSpawner::SetBodyPartToSpawnCount(int32 InBodyPartToSpawnCount
 	BodyPartToSpawnCount = InBodyPartToSpawnCount;
 }
 
+void ASnakeBodyPartSpawner::BeginPlay()
+{
+	Super::BeginPlay();
+
+	const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
+	NoCollisionBodyPartsCount = GameConstants ? GameConstants->SnakeNoCollisionBodySize : 0;
+}
+
 void ASnakeBodyPartSpawner::SpawnBodyPart(ASnakePawn* InSnakePawn, const FVector& InMoveDirection, const TArray<FChangeDirectionAction>& InChangeDirectionQueue /* = {}*/)
 {
 	if (ensure(InSnakePawn) && ensure(SnakeBodyPartClass))
@@ -99,17 +106,22 @@ void ASnakeBodyPartSpawner::SpawnBodyPart(ASnakePawn* InSnakePawn, const FVector
 			ASnakeBodyPart* const SnakeBodyPart = World->SpawnActor<ASnakeBodyPart>(SnakeBodyPartClass, GetActorLocation(), FRotator::ZeroRotator);
 			if (ensure(SnakeBodyPart))
 			{
-				InSnakePawn->AddSnakeBodyPart(SnakeBodyPart);
-
 				SnakeBodyPart->SetSnakeBodyPartType(ESnakeBodyPartType::kTail);
+
 				SnakeBodyPart->SetSnakePawn(InSnakePawn);
 				SnakeBodyPart->SetMoveDir(InMoveDirection);
 				SnakeBodyPart->SetChangeDirQueue(InChangeDirectionQueue);
+
+				if (InSnakePawn->GetSnakeBodyPartsCount() <= NoCollisionBodyPartsCount)
+				{
+					SnakeBodyPart->SetTriggerEndGameOverlapEvent(false);
+				}
+
+				InSnakePawn->AddSnakeBodyPart(SnakeBodyPart);
 			
 				BodyPartToSpawnCount--;
 				bSpawnCompleted = BodyPartToSpawnCount <= 0;
 			}
 		}
-		
 	}
 }

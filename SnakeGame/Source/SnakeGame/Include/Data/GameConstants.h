@@ -42,4 +42,12 @@ public:
 	*/
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Movement", meta = (ClampMin = 1.0))
 	float MaxMovementSpeed = 500.0f;
+
+	/**
+		Number of body parts that compose the body immediately after
+		the head. To avoid collision while changing direction these
+		elements doesn't trigger an overlap events and therefore the end game.
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body", meta = (ClampMin = 1))
+	int32 SnakeNoCollisionBodySize = 3;
 };
