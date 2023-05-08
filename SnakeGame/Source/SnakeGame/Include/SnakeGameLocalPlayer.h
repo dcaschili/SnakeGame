@@ -17,6 +17,9 @@ public:
 	UPlayerProfileSaveGame* GetPlayerProfileSaveGame() const;
 	void SetPlayerProfileSaveGame(UPlayerProfileSaveGame* InPlayerProfileSaveGame);
 
+	void UpdatePlayerScore(int32 InNewScore);
+	void SaveGame();
+
 private:
 	UPROPERTY()
 	TObjectPtr<UPlayerProfileSaveGame> PlayerProfileSaveGame{};

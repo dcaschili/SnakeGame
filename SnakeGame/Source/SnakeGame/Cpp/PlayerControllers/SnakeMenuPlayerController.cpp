@@ -40,7 +40,9 @@ void ASnakeMenuPlayerController::BeginPlay()
 
 
 	FInputModeUIOnly InputModeUIOnly{};
+	InputModeUIOnly.SetLockMouseToViewportBehavior(EMouseLockMode::LockOnCapture);
 	SetInputMode(InputModeUIOnly);
+	SetShowMouseCursor(true);
 
 	// Setup layout and page
 	if (BaseLayoutPage)
@@ -83,6 +85,7 @@ void ASnakeMenuPlayerController::HandleButtonClicked(const FName& InButtonId)
 		switch (*Action)
 		{
 		case EMenuAction::kStart:
+			ClientTravel(FString(TEXT("/Game/Maps/Match")), TRAVEL_Absolute);
 			break;
 		case EMenuAction::kExit:
 			UKismetSystemLibrary::QuitGame(this, this, EQuitPreference::Quit, false);

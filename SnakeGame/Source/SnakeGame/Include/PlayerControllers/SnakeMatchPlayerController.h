@@ -25,6 +25,8 @@ protected:
 
 private:
 	UFUNCTION()
+	void HandleEndGamePageButtonClicked(const FName& InButtonId);
+	UFUNCTION()
 	void HandleEndGameDelegate();
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_EndGame();
@@ -35,4 +37,8 @@ private:
 	void HandleScoreChanged();
 
 	void UpdatePageScore();
+
+
+	UPROPERTY(EditDefaultsOnly, Category="SnakeGame|UI")
+	FName GameOverPageContinueButtonId{};
 };

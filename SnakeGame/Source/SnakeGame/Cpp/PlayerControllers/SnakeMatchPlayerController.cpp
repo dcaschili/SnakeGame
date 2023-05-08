@@ -11,6 +11,7 @@
 #include "Net/UnrealNetwork.h"
 #include "SnakeMatchGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "SnakeGameLocalPlayer.h"
 
 #if !UE_BUILD_SHIPPING
 #include "Engine.h"
@@ -29,6 +30,15 @@ void ASnakeMatchPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReas
 		SnakeMatchGameMode->OnEndGame.RemoveDynamic(this, &ThisClass::HandleEndGameDelegate);
 	}
 
+	if (BaseLayoutPage)
+	{
+		UCommonActivatableWidget* const ActiveWidget = BaseLayoutPage->GetActiveWidget(EPageLayoutStackType::GameUI);
+		if (UGameOverPage* const GameOverPage = Cast<UGameOverPage>(ActiveWidget))
+		{
+			GameOverPage->OnButtonClicked.RemoveDynamic(this, &ThisClass::HandleEndGamePageButtonClicked);
+		}
+	}
+
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -36,8 +46,9 @@ void ASnakeMatchPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	FInputModeGameOnly InputModeGameOnly{};
+	FInputModeGameOnly InputModeGameOnly{};	
 	SetInputMode(InputModeGameOnly);
+	SetShowMouseCursor(false);
 
 	if (ASnakeGamePlayerState* const SnakeGamePlayerState = Cast<ASnakeGamePlayerState>(PlayerState))
 	{
@@ -72,13 +83,33 @@ void ASnakeMatchPlayerController::BeginPlay()
 
 void ASnakeMatchPlayerController::Multicast_EndGame_Implementation()
 {
-	UE_LOG(SnakeLogCategoryGame, Verbose, TEXT("ASnakeMatchPlayerController - Received EndGame from server"));
+	GDTUI_LOG(SnakeLogCategoryGame, Verbose, TEXT("Received EndGame from server"));
 	InnerHandleEndGame();
+}
+
+void ASnakeMatchPlayerController::HandleEndGamePageButtonClicked(const FName& InButtonId)
+{
+	GDTUI_LOG(SnakeLogCategoryUI, VeryVerbose, TEXT("EndGame page button clicked: %s"), *InButtonId.ToString());
+	if (ensure(!GameOverPageContinueButtonId.IsNone()) && InButtonId.IsEqual(GameOverPageContinueButtonId))
+	{
+		// Handle savegame
+		if (USnakeGameLocalPlayer* const SnakeLocalPlayer = Cast<USnakeGameLocalPlayer>(GetLocalPlayer()))
+		{
+			if(PlayerState)
+			{
+				SnakeLocalPlayer->UpdatePlayerScore(PlayerState->GetScore());
+				SnakeLocalPlayer->SaveGame();
+			}
+		}
+
+		// Go back to main menu
+		ClientTravel(FString(TEXT("Game/Maps/Menu")), TRAVEL_Absolute);
+	}
 }
 
 void ASnakeMatchPlayerController::HandleEndGameDelegate()
 {
-	UE_LOG(SnakeLogCategoryGame, Verbose, TEXT("ASnakeMatchPlayerController - Received endgame delegate event on the server!"));
+	GDTUI_LOG(SnakeLogCategoryGame, Verbose, TEXT("Received endgame delegate event on the server!"));
 	
 	// Forward event to all client.
 	Multicast_EndGame();
@@ -89,6 +120,10 @@ void ASnakeMatchPlayerController::InnerHandleEndGame()
 	// If on the client and has authority, show the end game page
 	if (GetNetMode() != NM_DedicatedServer && HasAuthority())
 	{
+		FInputModeUIOnly InputModeUIOnly{};
+		SetInputMode(InputModeUIOnly);
+		SetShowMouseCursor(true);
+
 		UE_LOG(SnakeLogCategoryGame, Verbose, TEXT("ASnakeMatchPlayerController - Show EndGame page on client!"));
 
 		if (GameOverPageClass)
@@ -99,8 +134,10 @@ void ASnakeMatchPlayerController::InnerHandleEndGame()
 				if (GameOverPage)
 				{
 					// Record to event
+					GameOverPage->OnButtonClicked.AddUniqueDynamic(this, &ThisClass::HandleEndGamePageButtonClicked);
 
 					// Setup model.
+					GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, TEXT("Setup endgame page data model!"));
 				}
 			}
 		}
