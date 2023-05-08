@@ -24,10 +24,12 @@ public:
 
 private:
 	UFUNCTION()
-	void HandleEndGameOverlap();
+	void HandleEndGame();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SnakeGame|Movement", meta = (AllowPrivateAccess = true))
 	bool bUpdateControlRotation = false;
+	UPROPERTY(Replicated)
+	bool						bIsMovementEnabled = true;
 
 	TWeakObjectPtr<AController> SnakeController{};
 	TOptional<FVector>			PreviousMoveDirection{};
@@ -35,5 +37,4 @@ private:
 	FVector						MoveDirection = FVector::RightVector;
 	float						HalfTileSize{};
 	int32						TileSize{};
-	bool						bIsMovementEnabled = true;
 }; 

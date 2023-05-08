@@ -8,6 +8,9 @@
 #include "Data/Model/PlayerScoreDataModel.h"
 #include "Data/Model/GameDataModelDrivenInterface.h"
 #include "UI/Pages/GameOverPage.h"
+#include "Net/UnrealNetwork.h"
+#include "SnakeMatchGameModeBase.h"
+#include "Kismet/GameplayStatics.h"
 
 #if !UE_BUILD_SHIPPING
 #include "Engine.h"
@@ -18,6 +21,12 @@ void ASnakeMatchPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReas
 	if (ASnakeGamePlayerState* const SnakeGamePlayerState = Cast<ASnakeGamePlayerState>(PlayerState))
 	{
 		SnakeGamePlayerState->OnPlayerStateScoreUpdated.RemoveDynamic(this, &ThisClass::HandleScoreChanged);
+	}
+
+	if (ASnakeMatchGameModeBase* const SnakeMatchGameMode = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this)))
+	{
+		// Only on the server
+		SnakeMatchGameMode->OnEndGame.RemoveDynamic(this, &ThisClass::HandleEndGameDelegate);
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -52,27 +61,54 @@ void ASnakeMatchPlayerController::BeginPlay()
 			ensure(false);
 		}
 	}
+
+	// Register to endgame event.
+	if (ASnakeMatchGameModeBase* const SnakeMatchGameMode = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this)))
+	{
+		// Only on the server
+		SnakeMatchGameMode->OnEndGame.AddUniqueDynamic(this, &ThisClass::HandleEndGameDelegate);
+	}
 }
 
-void ASnakeMatchPlayerController::HandleEndGame()
+void ASnakeMatchPlayerController::Multicast_EndGame_Implementation()
 {
-	if (GameOverPageClass)
-	{
-		if (ensure(BaseLayoutPage))
-		{
-			UGameOverPage* const GameOverPage = Cast<UGameOverPage>(BaseLayoutPage->PushWidget(GameOverPageClass, EPageLayoutStackType::GameUI));
-			if (GameOverPage)
-			{
-				// Record to event
+	UE_LOG(SnakeLogCategoryGame, Verbose, TEXT("ASnakeMatchPlayerController - Received EndGame from server"));
+	InnerHandleEndGame();
+}
 
-				// Setup model.
+void ASnakeMatchPlayerController::HandleEndGameDelegate()
+{
+	UE_LOG(SnakeLogCategoryGame, Verbose, TEXT("ASnakeMatchPlayerController - Received endgame delegate event on the server!"));
+	
+	// Forward event to all client.
+	Multicast_EndGame();
+}
+
+void ASnakeMatchPlayerController::InnerHandleEndGame()
+{
+	// If on the client and has authority, show the end game page
+	if (GetNetMode() != NM_DedicatedServer && HasAuthority())
+	{
+		UE_LOG(SnakeLogCategoryGame, Verbose, TEXT("ASnakeMatchPlayerController - Show EndGame page on client!"));
+
+		if (GameOverPageClass)
+		{
+			if (ensure(BaseLayoutPage))
+			{
+				UGameOverPage* const GameOverPage = Cast<UGameOverPage>(BaseLayoutPage->PushWidget(GameOverPageClass, EPageLayoutStackType::GameUI));
+				if (GameOverPage)
+				{
+					// Record to event
+
+					// Setup model.
+				}
 			}
 		}
-	}
-	else
-	{
-		UE_LOG(SnakeLogCategoryUI, Warning, TEXT("ASnakeMatchPlayerController - Missing game over class!"));
-		ensure(false);
+		else
+		{
+			UE_LOG(SnakeLogCategoryUI, Warning, TEXT("ASnakeMatchPlayerController - Missing game over class!"));
+			ensure(false);
+		}
 	}
 }
 

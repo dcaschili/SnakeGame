@@ -13,6 +13,14 @@ void ASnakeGamePlayerController::BeginPlay()
 	Super::BeginPlay();
 
 	// Setup layout and page
+	if (HasAuthority() && GetNetMode() != NM_DedicatedServer)
+	{
+		SetupBaseLayout();
+	}
+}
+
+void ASnakeGamePlayerController::SetupBaseLayout()
+{
 	if (BaseLayoutPageClass)
 	{
 		BaseLayoutPage = CreateWidget<UGDTUIUWBasePageLayout>(this, BaseLayoutPageClass);

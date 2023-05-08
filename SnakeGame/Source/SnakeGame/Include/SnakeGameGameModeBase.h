@@ -30,7 +30,6 @@ protected:
 	TSubclassOf<ACollectiblesSpawner> SnakeCollectibleSpawnerClass;
 
 private:
-	
 	void SpawnMapManager();
 	void SpawnCollectiblesSpawner();
 

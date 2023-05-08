@@ -3,6 +3,18 @@
 #include "GameFramework/Actor.h"
 #include "Game/TriggerEndGameInterface.h"
 #include "SnakeLog.h"
+#include "Kismet/GameplayStatics.h"
+#include "SnakeMatchGameModeBase.h"
+
+#if !UE_BUILD_SHIPPING
+#include "Engine.h"
+#endif // !UE_BUILD_SHIPPING
+
+UEndGameOverlapDetectionComponent::UEndGameOverlapDetectionComponent()
+	: Super()
+{
+	SetIsReplicatedByDefault(false);
+}
 
 void UEndGameOverlapDetectionComponent::BeginPlay()
 {
@@ -31,11 +43,17 @@ void UEndGameOverlapDetectionComponent::HandleBeginOverlap(AActor* OverlappedAct
 		if (Interface->ShouldTriggerEndGame())
 		{
 #if !UE_BUILD_SHIPPING
-			GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("Game Over!"));
+			GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("EndGame overlap detected!"));
 #endif // !UE_BUILD_SHIPPING
-			UE_LOG(SnakeLogCategoryGame, Log, TEXT("Game Over!"));
+			UE_LOG(SnakeLogCategoryGame, Log, TEXT("EndGame overlap detected!"));
 
-			OnEndGameOverlap.Broadcast();
+			// Trigger endgame on the game mode
+			if (ASnakeMatchGameModeBase* const SnakeGameMode = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this)))
+			{
+				// Works only on the server.
+				SnakeGameMode->EndGame();
+			}
+
 		}
 	}
 }

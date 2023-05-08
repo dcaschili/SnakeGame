@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include "GameFramework/PlayerController.h"
@@ -13,11 +14,13 @@ class SNAKEGAME_API ASnakeGamePlayerController : public APlayerController
 
 protected:
 	virtual void BeginPlay() override;
-
-
+	
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|UI")
 	TSubclassOf<UGDTUIUWBasePageLayout> BaseLayoutPageClass{};
 	
 	UPROPERTY()
 	TObjectPtr<UGDTUIUWBasePageLayout> BaseLayoutPage{};
+
+private:
+	void SetupBaseLayout();
 };

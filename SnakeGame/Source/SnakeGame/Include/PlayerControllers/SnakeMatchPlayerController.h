@@ -25,7 +25,11 @@ protected:
 
 private:
 	UFUNCTION()
-	void HandleEndGame();
+	void HandleEndGameDelegate();
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_EndGame();
+	
+	virtual void InnerHandleEndGame();
 
 	UFUNCTION()
 	void HandleScoreChanged();

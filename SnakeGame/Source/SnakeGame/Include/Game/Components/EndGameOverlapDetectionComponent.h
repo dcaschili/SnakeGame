@@ -11,10 +11,10 @@ class SNAKEGAME_API UEndGameOverlapDetectionComponent : public UActorComponent
 {
     GENERATED_BODY()
 public:
+	UEndGameOverlapDetectionComponent();
+
     virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-	FOnEndGameOverlapDelegate OnEndGameOverlap{};
 
 private:
 	UFUNCTION()

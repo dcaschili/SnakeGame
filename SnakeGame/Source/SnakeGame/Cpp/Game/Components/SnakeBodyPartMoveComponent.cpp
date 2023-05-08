@@ -2,17 +2,16 @@
 
 #include "Data/GameConstants.h"
 #include "SnakeLog.h"
-#include "GameFramework/Actor.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "GameFramework/Pawn.h"
-#include "GameFramework/Controller.h"
 #include "Kismet/GameplayStatics.h"
-#include "Game/SnakePawn.h"
-#include "Game/Components/EndGameOverlapDetectionComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "SnakeMatchGameModeBase.h"
 
 USnakeBodyPartMoveComponent::USnakeBodyPartMoveComponent()
 	: Super()
 {
+	SetIsReplicatedByDefault(true);
+
 	bWantsInitializeComponent = false;
 	PrimaryComponentTick.bCanEverTick = true;
 }
@@ -46,25 +45,20 @@ void USnakeBodyPartMoveComponent::BeginPlay()
 		}
 	}
 
-	// TODO: Add support for local/online multiplayer (more than one snakepawn)
-	// Register to endgame event.
-	ASnakePawn* const SnakePawn = Cast<ASnakePawn>(UGameplayStatics::GetActorOfClass(this, ASnakePawn::StaticClass()));
-	UEndGameOverlapDetectionComponent* const EndGameOverlapDetection = SnakePawn ? SnakePawn->GetEndGameOverlapDetectionComponent() : nullptr;
-	if (EndGameOverlapDetection)
+	if (ASnakeMatchGameModeBase* const SnakeGameMode = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this)))
 	{
-		EndGameOverlapDetection->OnEndGameOverlap.AddUniqueDynamic(this, &ThisClass::HandleEndGameOverlap);
+		// Works only on the server
+		SnakeGameMode->OnEndGame.AddUniqueDynamic(this, &ThisClass::HandleEndGame);
 	}
-
+	
 }
 
 void USnakeBodyPartMoveComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	// unbind from endgame event.
-	ASnakePawn* const SnakePawn = Cast<ASnakePawn>(UGameplayStatics::GetActorOfClass(this, ASnakePawn::StaticClass()));
-	UEndGameOverlapDetectionComponent* const EndGameOverlapDetection = SnakePawn ? SnakePawn->GetEndGameOverlapDetectionComponent() : nullptr;
-	if (EndGameOverlapDetection)
+	if (ASnakeMatchGameModeBase* const SnakeGameMode = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this)))
 	{
-		EndGameOverlapDetection->OnEndGameOverlap.RemoveDynamic(this, &ThisClass::HandleEndGameOverlap);
+		// Works only on the server
+		SnakeGameMode->OnEndGame.RemoveDynamic(this, &ThisClass::HandleEndGame);
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -77,7 +71,7 @@ void USnakeBodyPartMoveComponent::ChangeMoveDirection(const FVector& InNewDirect
 	bDirectionChanged = true;
 }
 
-void USnakeBodyPartMoveComponent::HandleEndGameOverlap()
+void USnakeBodyPartMoveComponent::HandleEndGame()
 {
 	bIsMovementEnabled = false;
 	UE_LOG(SnakeLogCategoryGame, Verbose, TEXT("USnakeBodyPartMoveComponent - Stop movement!"));
@@ -142,3 +136,9 @@ void USnakeBodyPartMoveComponent::TickComponent(float DeltaTime, ELevelTick Tick
 	}
 }
 
+void USnakeBodyPartMoveComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(USnakeBodyPartMoveComponent, bIsMovementEnabled);
+}
