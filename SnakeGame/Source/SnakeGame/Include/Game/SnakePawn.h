@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GameFramework/Pawn.h"
-#include "Game/SnakeBodyPartTypeInterface.h"
+#include "Game/Interfaces/SnakeBodyPartTypeInterface.h"
 #include "ChangeDirectionAction.h"
 
 #include "SnakePawn.generated.h"
@@ -10,7 +10,6 @@ class UStaticMeshComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class UInputAction;
-class UInputMappingContext;
 class UInputComponent;
 class UEndGameCollisionDetectionComponent;
 class UMapOccupancyComponent;
@@ -28,6 +27,7 @@ class SNAKEGAME_API ASnakePawn : public APawn, public ISnakeBodyPartTypeInterfac
 public:
 	ASnakePawn();
 
+	virtual void PossessedBy(AController* NewController) override;
 	virtual void Tick(float DeltaSeconds) override;
 
 	// ISnakeBodyPartTypeInterface
@@ -79,8 +79,6 @@ private:
 	TObjectPtr<UInputAction> MoveRightIA{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Inputs")
 	TObjectPtr<UInputAction> MoveUpIA{};
-	UPROPERTY(EditDefaultsOnly, Category = "Snake|Inputs")
-	TObjectPtr<UInputMappingContext> InputMappingContext{};
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body", meta=(ClampMin=1, UIMin=1))
 	int32 InitialBodyPartsCount = 3;

@@ -1,7 +1,7 @@
 #include "Game/SnakeBodyPartSpawner.h"
 
 #include "Data/GameConstants.h"
-#include "Game/SnakeBodyPartTypeInterface.h"
+#include "Game/Interfaces/SnakeBodyPartTypeInterface.h"
 #include "Game/SnakePawn.h"
 #include "Game/SnakeBodyPartType.h"
 #include "SnakeLog.h"

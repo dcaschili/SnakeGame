@@ -5,7 +5,6 @@
 #include "Camera/CameraComponent.h"
 #include "InputAction.h"
 #include "EnhancedInputComponent.h"
-#include "EnhancedInputSubsystems.h"
 #include "SnakeLog.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/LocalPlayer.h"
@@ -18,11 +17,10 @@
 #include "SnakeGameGameModeBase.h"
 #include "Game/Components/EndGameOverlapDetectionComponent.h"
 
-#include "TimerManager.h"
-
 #if !UE_BUILD_SHIPPING
 #include "DrawDebugHelpers.h"
 #include "Utils/GDTCDebugFunctionLibrary.h"
+#include "TimerManager.h"
 
 static TAutoConsoleVariable<bool> CVarSnakePositionDebug(
 	TEXT("Snake.EnableSnakePositionDebug"),
@@ -70,6 +68,30 @@ ASnakePawn::ASnakePawn()
 		MapOccupancyComponent->SetEnableContinuousTileOccupancyTest(true);
 	}
 	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));
+}
+
+void ASnakePawn::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	// Spawn initial body part spawner
+	if (ensure(SnakeBodyPartSpawnerClass))
+	{
+		FVector SpawnLocation{};
+		if (ensure(UMapFunctionLibrary::AlignWorldLocationToTileCenter(this, GetActorLocation(), SpawnLocation)))
+		{
+			UWorld* const World = GetWorld();
+			if (ensure(World))
+			{
+				SpawnLocation.Z = GetActorLocation().Z;
+				ASnakeBodyPartSpawner* BodyPartSpawner = World->SpawnActor<ASnakeBodyPartSpawner>(SnakeBodyPartSpawnerClass, SpawnLocation, FRotator::ZeroRotator);
+				if (ensure(BodyPartSpawner) && InitialBodyPartsCount > 1)
+				{
+					BodyPartSpawner->SetBodyPartToSpawnCount(InitialBodyPartsCount);
+				}
+			}
+		}
+	}
 }
 
 void ASnakePawn::Tick(float DeltaSeconds)
@@ -152,45 +174,6 @@ FVector ASnakePawn::GetMoveDirection() const
 void ASnakePawn::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// Setup input
-	if (InputMappingContext)
-	{
-		APlayerController* PC = Cast<APlayerController>(Controller);
-		ULocalPlayer* LocalPlayer = PC ? PC->GetLocalPlayer() : nullptr;
-		if (LocalPlayer)
-		{
-			UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-			if (EnhancedInputSubsystem)
-			{
-				EnhancedInputSubsystem->AddMappingContext(InputMappingContext, 0);
-			}
-		}
-	}
-	else
-	{
-		UE_LOG(SnakeLogCategoryGame, Warning, TEXT("Missing InputMapping Context"));
-		ensure(false);
-	}
-
-	// Spawn initial body part spawner
-	if (ensure(SnakeBodyPartSpawnerClass))
-	{
-		FVector SpawnLocation{};
-		if (ensure(UMapFunctionLibrary::AlignWorldLocationToTileCenter(this, GetActorLocation(), SpawnLocation)))
-		{
-			UWorld* const World = GetWorld();
-			if (ensure(World))
-			{
-				SpawnLocation.Z = GetActorLocation().Z;
-				ASnakeBodyPartSpawner* BodyPartSpawner = World->SpawnActor<ASnakeBodyPartSpawner>(SnakeBodyPartSpawnerClass, SpawnLocation, FRotator::ZeroRotator);
-				if (ensure(BodyPartSpawner) && InitialBodyPartsCount > 1)
-				{
-					BodyPartSpawner->SetBodyPartToSpawnCount(InitialBodyPartsCount);
-				}
-			}
-		}
-	}
 
 	BindEvents();
 }

@@ -4,8 +4,8 @@
 #include "Game/SnakeBodyPartType.h"
 #include "Containers/Queue.h"
 #include "Game/ChangeDirectionAction.h"
-#include "Game/SnakeBodyPartTypeInterface.h"
-#include "Game/TriggerEndGameInterface.h"
+#include "Game/Interfaces/SnakeBodyPartTypeInterface.h"
+#include "Game/Interfaces/TriggerEndGameInterface.h"
 
 #include "SnakeBodyPart.generated.h"
 

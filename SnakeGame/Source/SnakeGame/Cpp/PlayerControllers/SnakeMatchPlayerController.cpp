@@ -12,6 +12,11 @@
 #include "SnakeMatchGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "SnakeGameLocalPlayer.h"
+#include "EnhancedInputComponent.h"
+#include "InputTriggers.h"
+#include "Engine/LocalPlayer.h"
+#include "EnhancedInputSubsystems.h"
+#include "Game/SnakePawn.h"
 
 #if !UE_BUILD_SHIPPING
 #include "Engine.h"
@@ -27,7 +32,8 @@ void ASnakeMatchPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReas
 	if (ASnakeMatchGameModeBase* const SnakeMatchGameMode = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this)))
 	{
 		// Only on the server
-		SnakeMatchGameMode->OnEndGame.RemoveDynamic(this, &ThisClass::HandleEndGameDelegate);
+		SnakeMatchGameMode->OnEndMatch.RemoveDynamic(this, &ThisClass::HandleEndMatchDelegate);
+		SnakeMatchGameMode->OnStartMatch.RemoveDynamic(this, &ThisClass::HandleStartMatchDelegate);
 	}
 
 	if (BaseLayoutPage)
@@ -49,6 +55,27 @@ void ASnakeMatchPlayerController::BeginPlay()
 	FInputModeGameOnly InputModeGameOnly{};	
 	SetInputMode(InputModeGameOnly);
 	SetShowMouseCursor(false);
+
+	// Setup input mapping
+	if (InputMappingContext)
+	{
+		const ULocalPlayer* const LP = GetLocalPlayer();
+		UEnhancedInputLocalPlayerSubsystem* const EnhancedInputSubsystem = LP ? LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() : nullptr;
+		if (ensure(EnhancedInputSubsystem))
+		{
+			EnhancedInputSubsystem->AddMappingContext(InputMappingContext, 0);
+		}
+		else
+		{
+			GDTUI_LOG(SnakeLogCategoryGame, Error, TEXT("Can't find EnhancedInputSubsystem!"));
+			ensure(false);
+		}
+	}
+	else
+	{
+		GDTUI_LOG(SnakeLogCategoryGame, Error, TEXT("Missing InputMapping Context"));
+		ensure(false);
+	}
 
 	if (ASnakeGamePlayerState* const SnakeGamePlayerState = Cast<ASnakeGamePlayerState>(PlayerState))
 	{
@@ -77,14 +104,42 @@ void ASnakeMatchPlayerController::BeginPlay()
 	if (ASnakeMatchGameModeBase* const SnakeMatchGameMode = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this)))
 	{
 		// Only on the server
-		SnakeMatchGameMode->OnEndGame.AddUniqueDynamic(this, &ThisClass::HandleEndGameDelegate);
+		SnakeMatchGameMode->OnEndMatch.AddUniqueDynamic(this, &ThisClass::HandleEndMatchDelegate);
+		SnakeMatchGameMode->OnStartMatch.AddUniqueDynamic(this, &ThisClass::HandleStartMatchDelegate);
 	}
 }
 
-void ASnakeMatchPlayerController::Multicast_EndGame_Implementation()
+void ASnakeMatchPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+	
+
+	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent);
+	if (ensure(EnhancedInputComponent))
+	{
+		if (StartMatchIA)
+		{
+			EnhancedInputComponent->BindAction(StartMatchIA, ETriggerEvent::Triggered, this, &ThisClass::HandleStartMatchAction);
+		}
+		else
+		{
+			GDTUI_SHORT_LOG(SnakeLogCategoryGame, Warning, TEXT("Missing MoveRightIA!"));
+			ensure(false);
+		}
+	}
+}
+
+void ASnakeMatchPlayerController::Multicast_EndMatch_Implementation()
 {
 	GDTUI_LOG(SnakeLogCategoryGame, Verbose, TEXT("Received EndGame from server"));
-	InnerHandleEndGame();
+	InnerHandleEndMatch();
+}
+
+void ASnakeMatchPlayerController::HandleStartMatchAction(const FInputActionInstance& InputActionInstance)
+{
+	GDTUI_LOG(SnakeLogCategoryGame, Log, TEXT("Start match requested!"));
+
+	Server_StartMatch();
 }
 
 void ASnakeMatchPlayerController::HandleEndGamePageButtonClicked(const FName& InButtonId)
@@ -107,15 +162,42 @@ void ASnakeMatchPlayerController::HandleEndGamePageButtonClicked(const FName& In
 	}
 }
 
-void ASnakeMatchPlayerController::HandleEndGameDelegate()
+void ASnakeMatchPlayerController::HandleEndMatchDelegate()
 {
 	GDTUI_LOG(SnakeLogCategoryGame, Verbose, TEXT("Received endgame delegate event on the server!"));
 	
 	// Forward event to all client.
-	Multicast_EndGame();
+	Multicast_EndMatch();
 }
 
-void ASnakeMatchPlayerController::InnerHandleEndGame()
+void ASnakeMatchPlayerController::HandleStartMatchDelegate()
+{
+	if (ensure(SnakePawnClass))
+	{
+		GDTUI_SHORT_LOG(SnakeLogCategoryGame, Log, TEXT("Spawning snake pawn!"));
+		
+		ASnakeMatchGameModeBase* const SnakeMatchGameMode = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this));
+		AActor* const PlayerStart = SnakeMatchGameMode ? SnakeMatchGameMode->FindPlayerStart(this) : nullptr;
+
+		if (PlayerStart)
+		{
+			if (UWorld* World = GetWorld())
+			{
+				GDTUI_SHORT_LOG(SnakeLogCategoryGame, Log, TEXT("Snake spawn completed!"));
+				ASnakePawn* const SnakePawn = World->SpawnActor<ASnakePawn>(SnakePawnClass, PlayerStart->GetActorLocation(), FRotator::ZeroRotator);
+				
+				Possess(SnakePawn);
+			}
+		}
+	}
+	else
+	{
+		GDTUI_LOG(SnakeLogCategoryGame, Error, TEXT("Missing snake pawn class!"));
+		ensure(false);
+	}
+}
+
+void ASnakeMatchPlayerController::InnerHandleEndMatch()
 {
 	// If on the client and has authority, show the end game page
 	if (GetNetMode() != NM_DedicatedServer && HasAuthority())
@@ -168,4 +250,18 @@ void ASnakeMatchPlayerController::UpdatePageScore()
 			}
 		}
 	}
+}
+
+void ASnakeMatchPlayerController::Server_StartMatch_Implementation()
+{
+	ASnakeMatchGameModeBase* const SnakeMatchGameModeBase = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this));
+	if (ensure(SnakeMatchGameModeBase))
+	{
+		SnakeMatchGameModeBase->StartMatch();
+	}
+}
+
+bool ASnakeMatchPlayerController::Server_StartMatch_Validate()
+{
+	return true;
 }

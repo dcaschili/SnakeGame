@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
-#include "Game/TriggerEndGameInterface.h"
+#include "Game/Interfaces/TriggerEndGameInterface.h"
 
 #include "MapBorderActor.generated.h"
 

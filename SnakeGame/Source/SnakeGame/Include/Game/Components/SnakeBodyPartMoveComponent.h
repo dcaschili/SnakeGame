@@ -24,14 +24,15 @@ public:
 
 private:
 	UFUNCTION()
-	void HandleEndGame();
+	void HandleEndMatch();
+
+	AController* GetOwningController() const;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SnakeGame|Movement", meta = (AllowPrivateAccess = true))
 	bool bUpdateControlRotation = false;
 	UPROPERTY(Replicated)
 	bool						bIsMovementEnabled = true;
 
-	TWeakObjectPtr<AController> SnakeController{};
 	TOptional<FVector>			PreviousMoveDirection{};
 	bool						bDirectionChanged = false;
 	FVector						MoveDirection = FVector::RightVector;

@@ -3,8 +3,9 @@
 #include "SnakeGameGameModeBase.h"
 #include "SnakeMatchGameModeBase.generated.h"
 
+class ASnakePawn;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEndGameDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMatchEventDelegate);
 
 UCLASS()
 class SNAKEGAME_API ASnakeMatchGameModeBase : public ASnakeGameGameModeBase
@@ -12,9 +13,12 @@ class SNAKEGAME_API ASnakeMatchGameModeBase : public ASnakeGameGameModeBase
 	GENERATED_BODY()
 	
 public:
+	void StartMatch();
+	void EndMatch();
 
-	void EndGame();
+	FOnMatchEventDelegate OnEndMatch{};
+	FOnMatchEventDelegate OnStartMatch{};
 
-	FOnEndGameDelegate OnEndGame{};
-
+private:
+	
 };

@@ -26,29 +26,10 @@ void USnakeBodyPartMoveComponent::BeginPlay()
 	TileSize = GameConstants->TileSize;
 	HalfTileSize = TileSize / 2.0f;
 
-	if (bUpdateControlRotation)
-	{
-		if (APawn* PawnOwner = Cast<APawn>(GetOwner()))
-		{
-			// Get controller weak reference.
-			SnakeController = PawnOwner->GetController();
-			if (!SnakeController.IsValid())
-			{
-				UE_LOG(SnakeLogCategoryGame, Error, TEXT("Can't change rotation without a controller!"));
-				ensure(false);
-			}
-		}
-		else
-		{
-			UE_LOG(SnakeLogCategoryGame, Error, TEXT("Can't change rotation without a controller! Pawn is needed!"));
-			check(false);
-		}
-	}
-
 	if (ASnakeMatchGameModeBase* const SnakeGameMode = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this)))
 	{
 		// Works only on the server
-		SnakeGameMode->OnEndGame.AddUniqueDynamic(this, &ThisClass::HandleEndGame);
+		SnakeGameMode->OnEndMatch.AddUniqueDynamic(this, &ThisClass::HandleEndMatch);
 	}
 	
 }
@@ -58,7 +39,7 @@ void USnakeBodyPartMoveComponent::EndPlay(const EEndPlayReason::Type EndPlayReas
 	if (ASnakeMatchGameModeBase* const SnakeGameMode = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this)))
 	{
 		// Works only on the server
-		SnakeGameMode->OnEndGame.RemoveDynamic(this, &ThisClass::HandleEndGame);
+		SnakeGameMode->OnEndMatch.RemoveDynamic(this, &ThisClass::HandleEndMatch);
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -71,10 +52,19 @@ void USnakeBodyPartMoveComponent::ChangeMoveDirection(const FVector& InNewDirect
 	bDirectionChanged = true;
 }
 
-void USnakeBodyPartMoveComponent::HandleEndGame()
+void USnakeBodyPartMoveComponent::HandleEndMatch()
 {
 	bIsMovementEnabled = false;
 	UE_LOG(SnakeLogCategoryGame, Verbose, TEXT("USnakeBodyPartMoveComponent - Stop movement!"));
+}
+
+AController* USnakeBodyPartMoveComponent::GetOwningController() const
+{
+	if (APawn* PawnOwner = Cast<APawn>(GetOwner()))
+	{
+		return PawnOwner->GetController();
+	}
+	return nullptr;
 }
 
 void USnakeBodyPartMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -129,10 +119,18 @@ void USnakeBodyPartMoveComponent::TickComponent(float DeltaTime, ELevelTick Tick
 
 	GetOwner()->SetActorLocation(NewPos, true);
 
-	if (bUpdateControlRotation && SnakeController.IsValid())
+	if (bUpdateControlRotation)
 	{
-		FRotator FacingDir = UKismetMathLibrary::FindLookAtRotation(NewPos, NewPos + MoveDirection * 500.0f);
-		SnakeController->SetControlRotation(FacingDir);
+		if (AController* const Controller = GetOwningController())
+		{
+			FRotator FacingDir = UKismetMathLibrary::FindLookAtRotation(NewPos, NewPos + MoveDirection * 500.0f);
+			Controller->SetControlRotation(FacingDir);
+		}
+		else
+		{
+			GDTUI_LOG(SnakeLogCategoryGame, Error, TEXT("Unable to retrieve Controller! To use bUpdateControlRotation this component must be used on a pawn with a controller!"));
+			ensure(false);
+		}
 	}
 }
 

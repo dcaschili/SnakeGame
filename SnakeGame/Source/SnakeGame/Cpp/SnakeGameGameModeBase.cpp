@@ -5,6 +5,12 @@
 #include "Game/CollectiblesSpawner.h"
 #include "Engine/World.h"
 
+ASnakeGameGameModeBase::ASnakeGameGameModeBase()
+	: Super()
+{
+	PrimaryActorTick.bCanEverTick = false;
+}
+
 void ASnakeGameGameModeBase::StartPlay()
 {
 	// BeginPlay called on all actors

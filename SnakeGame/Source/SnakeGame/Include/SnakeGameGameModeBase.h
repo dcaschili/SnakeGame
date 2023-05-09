@@ -12,6 +12,7 @@ class SNAKEGAME_API ASnakeGameGameModeBase : public AGameModeBase
 	GENERATED_BODY()
 	
 public:
+	ASnakeGameGameModeBase();
 
 	// After the super, the begin play has been called on all actors.
 	virtual void StartPlay() override;

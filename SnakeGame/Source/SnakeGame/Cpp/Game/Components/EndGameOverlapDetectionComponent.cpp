@@ -1,7 +1,7 @@
 #include "Game/Components/EndGameOverlapDetectionComponent.h"
 
 #include "GameFramework/Actor.h"
-#include "Game/TriggerEndGameInterface.h"
+#include "Game/Interfaces/TriggerEndGameInterface.h"
 #include "SnakeLog.h"
 #include "Kismet/GameplayStatics.h"
 #include "SnakeMatchGameModeBase.h"
@@ -51,7 +51,7 @@ void UEndGameOverlapDetectionComponent::HandleBeginOverlap(AActor* OverlappedAct
 			if (ASnakeMatchGameModeBase* const SnakeGameMode = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this)))
 			{
 				// Works only on the server.
-				SnakeGameMode->EndGame();
+				SnakeGameMode->EndMatch();
 			}
 
 		}
