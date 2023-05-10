@@ -27,17 +27,32 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Spawning", meta=(MinUI = 0.0f, ClampMinUI = 0.0f))
 	float SpawningStartingHeight = 50.0f;
 
-
 private:
 	UFUNCTION()
 	void HandleOnMatchStarted();
 	UFUNCTION()
 	void HandleCollectibleCollected(const FVector& InCollectibleLocation);
 
+	void InitializeCollectiblePool();
 	void SpawnCollectible();
 	
+	/*
+		Since Snake game has a single collectible at a time  
+		It would have been possible to use a single actor. 
+		With that implementation there were some problems with the overlap 
+		interaction in the process of Disabling, Moving and Enabling 
+		the actor: the overlap event was generated again after the last step.
+		To avoid to introduce a delay between the moving and the enabling,
+		i decided to use the following approach:
+		I initalize a pool of two actors but only one of them is enabled
+		and visibile at any given time. Once the player collects the active 
+		collectible I simply enable the other.
+	*/
 	UPROPERTY()
-	TObjectPtr<ACollectibleActor>		ActiveCollectibleActor{};
-
-	TOptional<FVector>					LastSpawnLocation{};
+	TArray<ACollectibleActor*>	CollectibleActorsPoll{};
+	
+	TOptional<int32>			ActiveCollectible{};
+	TOptional<FVector>			LastSpawnLocation{};
+	FVector						OutOfMapLocation{ 0.0f, 0.0f, -2000.0f };
+	const int32					CollectiblePoolSize = 2;
 };

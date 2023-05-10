@@ -1,8 +1,6 @@
 #include "Game/SnakePawn.h"
 
-#include "GameFramework/SpringArmComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Camera/CameraComponent.h"
 #include "InputAction.h"
 #include "EnhancedInputComponent.h"
 #include "SnakeLog.h"
@@ -44,23 +42,7 @@ ASnakePawn::ASnakePawn()
 	StaticMeshComp->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
 	StaticMeshComp->CastShadow = false;
 	StaticMeshComp->SetGenerateOverlapEvents(true);
-
-	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
-	if (SpringArmComp)
-	{
-		SpringArmComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-		SpringArmComp->bInheritPitch = false;
-		SpringArmComp->bInheritYaw = false;
-		SpringArmComp->bInheritRoll = false;
-		SpringArmComp->TargetArmLength = 800.0f;
-	}
-
-	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
-	if (CameraComp)
-	{
-		CameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);
-	}
-
+	
 	EndGameOverlapComponent = CreateDefaultSubobject<UEndGameOverlapDetectionComponent>(TEXT("EndGameOverlapDetectionComponent"));
 	MapOccupancyComponent = CreateDefaultSubobject<UMapOccupancyComponent>(TEXT("MapOccupancyComponent"));
 	if (ensure(MapOccupancyComponent))

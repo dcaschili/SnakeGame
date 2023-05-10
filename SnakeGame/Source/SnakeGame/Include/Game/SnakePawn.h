@@ -7,8 +7,6 @@
 #include "SnakePawn.generated.h"
 
 class UStaticMeshComponent;
-class USpringArmComponent;
-class UCameraComponent;
 class UInputAction;
 class UInputComponent;
 class UEndGameCollisionDetectionComponent;
@@ -64,10 +62,6 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UStaticMeshComponent> StaticMeshComp{};
-	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
-	TObjectPtr<USpringArmComponent> SpringArmComp{};
-	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
-	TObjectPtr<UCameraComponent> CameraComp{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UEndGameOverlapDetectionComponent> EndGameOverlapComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")

@@ -25,11 +25,13 @@ void UMapOccupancyComponent::BeginPlay()
 }
 
 void UMapOccupancyComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	if(ensure(PreviousMapTileLocation.IsSet()))
-	if (AMapManager* const MapManager = AMapManager::GetMapManager(this))
+{	
+	if (PreviousMapTileLocation.IsSet())
 	{
-		MapManager->ReduceTileOccupancy(PreviousMapTileLocation.GetValue());
+		if (AMapManager* const MapManager = AMapManager::GetMapManager(this))
+		{
+			MapManager->ReduceTileOccupancy(PreviousMapTileLocation.GetValue());
+		}
 	}
 
 	Super::EndPlay(EndPlayReason);

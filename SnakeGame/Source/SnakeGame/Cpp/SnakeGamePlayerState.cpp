@@ -44,7 +44,7 @@ void ASnakeGamePlayerState::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ASnakeGamePlayerState::HandleCollectibleCollected(const FVector& InCollectibleLocation)
 {
-	UE_LOG(SnakeLogCategoryScore, Log, TEXT("Score updated!"));
+	GDTUI_SHORT_LOG(SnakeLogCategoryScore, Log, TEXT("Score updated!"));
 	SetScore(GetScore() + 1);
 	OnPlayerStateScoreUpdated.Broadcast();
 }

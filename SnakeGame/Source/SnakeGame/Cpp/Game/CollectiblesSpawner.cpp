@@ -26,9 +26,12 @@ void ACollectiblesSpawner::BeginPlay()
 
 void ACollectiblesSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (ActiveCollectibleActor)
+	for (ACollectibleActor* const Collectible : CollectibleActorsPoll)
 	{
-		ActiveCollectibleActor->OnCollectedActor.RemoveDynamic(this, &ThisClass::HandleCollectibleCollected);
+		if (Collectible)
+		{
+			Collectible->OnCollectedActor.RemoveDynamic(this, &ThisClass::HandleCollectibleCollected);
+		}
 	}
 
 	if (ASnakeMatchGameModeBase* const GameModeBase = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this)))
@@ -47,9 +50,8 @@ void ACollectiblesSpawner::HandleOnMatchStarted()
 
 void ACollectiblesSpawner::HandleCollectibleCollected(const FVector& InCollectibleLocation)
 {
-	if (ensure(ActiveCollectibleActor))
+	if (ensure(ActiveCollectible.IsSet()))
 	{
-		ActiveCollectibleActor->DisableCollectible();
 		OnCollectibleCollected.Broadcast(InCollectibleLocation);
 
 		// Change position
@@ -76,19 +78,62 @@ void ACollectiblesSpawner::HandleCollectibleCollected(const FVector& InCollectib
 				SpawnLocation.Z = SpawningStartingHeight;
 				UE_LOG(SnakeLogCategorySpawner, Verbose, TEXT("Spawned collectible at position %s"), *SpawnLocation.ToString());
 
-				ActiveCollectibleActor->SetActorLocation(SpawnLocation, false);
-				ActiveCollectibleActor->EnableCollectible();
+				// Move collectible out of map
+				ACollectibleActor* const ToDisableCollectible = CollectibleActorsPoll.IsValidIndex(ActiveCollectible.GetValue()) ? CollectibleActorsPoll[ActiveCollectible.GetValue()] : nullptr;
+				if (ToDisableCollectible)
+				{
+					ToDisableCollectible->SetActorLocation(OutOfMapLocation);						
+				}
+				
+				// Activate the new collectible
+				ActiveCollectible = (ActiveCollectible.GetValue() + 1) % CollectibleActorsPoll.Num();
+				ACollectibleActor* const ToSpawnCollectible = CollectibleActorsPoll.IsValidIndex(ActiveCollectible.GetValue()) ? CollectibleActorsPoll[ActiveCollectible.GetValue()] : nullptr;
+				if (ToSpawnCollectible)
+				{
+					ToSpawnCollectible->EnableCollectible();
+					ToSpawnCollectible->SetActorLocation(SpawnLocation, false);
+				}
 			}
 		}
 	}
 }
 
+void ACollectiblesSpawner::InitializeCollectiblePool()
+{
+	if (CollectibleClass)
+	{
+		CollectibleActorsPoll.Empty();
+		if (UWorld* const World = GetWorld())
+		{
+			for (int32 i = 0; i < CollectiblePoolSize; ++i)
+			{
+				ACollectibleActor* const Collectible = World->SpawnActor<ACollectibleActor>(CollectibleClass, OutOfMapLocation, FRotator::ZeroRotator);
+				if (ensure(Collectible))
+				{
+					Collectible->DisableCollectible();				
+					Collectible->OnCollectedActor.AddUniqueDynamic(this, &ThisClass::HandleCollectibleCollected);
+					
+					CollectibleActorsPoll.Add(Collectible);
+				}
+			}
+		}
+	}
+	else
+	{
+		GDTUI_LOG(SnakeLogCategorySpawner, Error, TEXT("Missing collectible class!"));
+		ensure(false);
+	}
+}
+
 void ACollectiblesSpawner::SpawnCollectible()
 {
-	if (GetWorld())
+	if (CollectibleActorsPoll.IsEmpty())
 	{
-		check(IsValid(CollectibleClass));
+		InitializeCollectiblePool();
+	}
 
+	if (ensure(!CollectibleActorsPoll.IsEmpty()))
+	{
 		AMapManager* const MapManager = AMapManager::GetMapManager(this);
 		if (ensure(MapManager))
 		{
@@ -112,21 +157,16 @@ void ACollectiblesSpawner::SpawnCollectible()
 				SpawnLocation.Z = SpawningStartingHeight;
 				GDTUI_SHORT_LOG(SnakeLogCategorySpawner, Verbose, TEXT("Spawned collectible at position %s"), *SpawnLocation.ToString());
 				
-				if (UWorld* const World = GetWorld())
-				{
-					FActorSpawnParameters SpawnParams;
-					SpawnParams.Owner = this;
-					SpawnParams.bNoFail = true;
-					SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+				// Start by the first in the array
+				ActiveCollectible = 0;
 
-					ActiveCollectibleActor = World->SpawnActor<ACollectibleActor>(CollectibleClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
-		
-					if (ensureAlways(IsValid(ActiveCollectibleActor)))
-					{
-						LastSpawnLocation = SpawnLocation;
-						ActiveCollectibleActor->OnCollectedActor.AddUniqueDynamic(this, &ThisClass::HandleCollectibleCollected);
-					}
-				}
+				ACollectibleActor* const CollectibleActor = CollectibleActorsPoll[ActiveCollectible.GetValue()];
+				CollectibleActor->EnableCollectible();
+				CollectibleActor->SetActorLocation(SpawnLocation, false);
+
+				CollectibleActor->OnCollectedActor.AddUniqueDynamic(this, &ThisClass::HandleCollectibleCollected);
+
+				LastSpawnLocation = SpawnLocation;
 			}
 		}
 	}

@@ -2,6 +2,7 @@
 
 #include "Components/StaticMeshComponent.h"
 #include "Game/Map/MapOccupancyComponent.h"
+#include "Game/SnakePawn.h"
 
 ACollectibleActor::ACollectibleActor()
 	: Super()
@@ -18,7 +19,11 @@ ACollectibleActor::ACollectibleActor()
 
 void ACollectibleActor::EnableCollectible()
 {
-	SetActorEnableCollision(true);
+	if (ensure(StaticMeshComp))
+	{
+		StaticMeshComp->SetGenerateOverlapEvents(true);
+	}
+
 	SetActorHiddenInGame(false);
 
 	if (ensure(MapOccupancyComponent))
@@ -29,7 +34,11 @@ void ACollectibleActor::EnableCollectible()
 
 void ACollectibleActor::DisableCollectible()
 {
-	SetActorEnableCollision(false);
+	if (ensure(StaticMeshComp))
+	{
+		StaticMeshComp->SetGenerateOverlapEvents(false);
+	}
+
 	SetActorHiddenInGame(true);
 
 	if (ensure(MapOccupancyComponent))
@@ -41,10 +50,13 @@ void ACollectibleActor::DisableCollectible()
 void ACollectibleActor::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	Super::NotifyActorBeginOverlap(OtherActor);
-
+	
 	if (HasAuthority())
 	{
-		OnCollectedActor.Broadcast(GetActorLocation());
-		//Destroy();
+		if (ASnakePawn* const SnakePawn = Cast<ASnakePawn>(OtherActor))
+		{
+			DisableCollectible();
+			OnCollectedActor.Broadcast(GetActorLocation());
+		}
 	}
 }
