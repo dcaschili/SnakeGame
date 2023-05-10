@@ -17,8 +17,12 @@ public:
 	void EndMatch();
 
 	FOnMatchEventDelegate OnEndMatch{};
+
+	/** Called after player input in the first page of the match state. */
 	FOnMatchEventDelegate OnStartMatch{};
+	/** Called after the start match delegate. Can be used to perform other initializations. */
+	FOnMatchEventDelegate OnMatchStarted{};
 
 private:
-	
+	bool bMatchStarted = false;
 };

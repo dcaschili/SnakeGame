@@ -30,6 +30,8 @@ protected:
 
 private:
 	UFUNCTION()
+	void HandleOnMatchStarted();
+	UFUNCTION()
 	void HandleCollectibleCollected(const FVector& InCollectibleLocation);
 
 	void SpawnCollectible();

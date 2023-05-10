@@ -4,7 +4,7 @@
 #include "Game/CollectibleActor.h"
 #include "Engine/World.h"
 #include "SnakeLog.h"
-#include "SnakeGameGameModeBase.h"
+#include "SnakeMatchGameModeBase.h"
 #include "Game/Map/MapManager.h"
 
 ACollectiblesSpawner::ACollectiblesSpawner()
@@ -17,7 +17,11 @@ ACollectiblesSpawner::ACollectiblesSpawner()
 void ACollectiblesSpawner::BeginPlay()
 {
 	Super::BeginPlay();
-	SpawnCollectible();
+	
+	if (ASnakeMatchGameModeBase* const GameModeBase = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this)))
+	{
+		GameModeBase->OnMatchStarted.AddUniqueDynamic(this, &ThisClass::HandleOnMatchStarted);
+	}
 }
 
 void ACollectiblesSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -27,7 +31,18 @@ void ACollectiblesSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		ActiveCollectibleActor->OnCollectedActor.RemoveDynamic(this, &ThisClass::HandleCollectibleCollected);
 	}
 
+	if (ASnakeMatchGameModeBase* const GameModeBase = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this)))
+	{
+		GameModeBase->OnMatchStarted.RemoveDynamic(this, &ThisClass::HandleOnMatchStarted);
+	}
+
 	Super::EndPlay(EndPlayReason);
+}
+
+void ACollectiblesSpawner::HandleOnMatchStarted()
+{
+	GDTUI_SHORT_LOG(SnakeLogCategorySpawner, Log, TEXT("Match started, start spawning collectibles!"));
+	SpawnCollectible();
 }
 
 void ACollectiblesSpawner::HandleCollectibleCollected(const FVector& InCollectibleLocation)
@@ -89,24 +104,28 @@ void ACollectiblesSpawner::SpawnCollectible()
 
 					while ((SpawnLocation - PreviousCollectibleLocation).IsNearlyZero())
 					{
-						UE_LOG(SnakeLogCategorySpawner, Verbose, TEXT("Generated a new collectible position equals to the previous one, continuing generating until a different position is obtained!"));
+						GDTUI_LOG(SnakeLogCategorySpawner, Verbose, TEXT("Generated a new collectible position equals to the previous one, continuing generating until a different position is obtained!"));
 						ensure(MapManager->GetRandomFreeMapLocation(SpawnLocation));
 					}
 				}
 
 				SpawnLocation.Z = SpawningStartingHeight;
-				UE_LOG(SnakeLogCategorySpawner, Verbose, TEXT("Spawned collectible at position %s"), *SpawnLocation.ToString());
+				GDTUI_SHORT_LOG(SnakeLogCategorySpawner, Verbose, TEXT("Spawned collectible at position %s"), *SpawnLocation.ToString());
 				
-				FActorSpawnParameters SpawnParams;
-				SpawnParams.Owner = this;
-				SpawnParams.bNoFail = true;
-				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-				ActiveCollectibleActor = GetWorld()->SpawnActor<ACollectibleActor>(CollectibleClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
-		
-				if (ensureAlways(IsValid(ActiveCollectibleActor)))
+				if (UWorld* const World = GetWorld())
 				{
-					LastSpawnLocation = SpawnLocation;
-					ActiveCollectibleActor->OnCollectedActor.AddUniqueDynamic(this, &ThisClass::HandleCollectibleCollected);
+					FActorSpawnParameters SpawnParams;
+					SpawnParams.Owner = this;
+					SpawnParams.bNoFail = true;
+					SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+					ActiveCollectibleActor = World->SpawnActor<ACollectibleActor>(CollectibleClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
+		
+					if (ensureAlways(IsValid(ActiveCollectibleActor)))
+					{
+						LastSpawnLocation = SpawnLocation;
+						ActiveCollectibleActor->OnCollectedActor.AddUniqueDynamic(this, &ThisClass::HandleCollectibleCollected);
+					}
 				}
 			}
 		}
