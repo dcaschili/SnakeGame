@@ -12,6 +12,13 @@ void UGameHUDPage::SetDataModel(UGameDataModel* InModel)
 	}
 }
 
+void UGameHUDPage::SetHUDConfigurationActive(bool bInIsActive)
+{
+	bHUDConfigurationActive = bInIsActive;
+
+	Execute_RefreshUI(this);
+}
+
 void UGameHUDPage::InnerOnActivated()
 {
 	Super::InnerOnActivated();
@@ -21,7 +28,5 @@ void UGameHUDPage::InnerOnActivated()
 
 void UGameHUDPage::InnerOnDeactivated()
 {
-
-
 	Super::InnerOnDeactivated();
 }

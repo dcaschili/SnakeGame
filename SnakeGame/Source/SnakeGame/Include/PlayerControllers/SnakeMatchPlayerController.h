@@ -4,7 +4,7 @@
 
 #include "SnakeMatchPlayerController.generated.h"
 
-class UGDTUIUWBasePage;
+class UGameHUDPage;
 class UGameOverPage;
 class UInputAction;
 class UInputMappingContext;
@@ -24,10 +24,14 @@ protected:
 
 	virtual void InnerHandleEndMatch();
 
+	/*
+		UI PAGES
+	*/
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|UI")
-	TSubclassOf<UGDTUIUWBasePage> HUDMatchPageClass{};
+	TSubclassOf<UGameHUDPage> HUDMatchPageClass{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|UI")
 	TSubclassOf<UGameOverPage> GameOverPageClass{};
+	
 
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Inputs")
 	TObjectPtr<UInputAction> StartMatchIA{};

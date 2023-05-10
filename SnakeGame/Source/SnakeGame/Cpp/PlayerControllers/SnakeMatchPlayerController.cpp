@@ -1,5 +1,6 @@
 #include "PlayerControllers/SnakeMatchPlayerController.h"
 
+#include "UI/Pages/GameHUDPage.h"
 #include "Pages/GDTUIUWBasePage.h"
 #include "SnakeLog.h"
 #include "CommonActivatableWidget.h"
@@ -87,8 +88,6 @@ void ASnakeMatchPlayerController::BeginPlay()
 		if (HUDMatchPageClass)
 		{
 			BaseLayoutPage->PushWidget(HUDMatchPageClass, EPageLayoutStackType::GameUI);
-
-			UpdatePageScore();
 		}
 		else
 		{
@@ -194,6 +193,17 @@ void ASnakeMatchPlayerController::HandleStartMatchDelegate()
 	{
 		GDTUI_LOG(SnakeLogCategoryGame, Error, TEXT("Missing snake pawn class!"));
 		ensure(false);
+	}
+
+	// Show HUD page
+	if (BaseLayoutPage)
+	{
+		UGameHUDPage* const GameHUDPage = Cast<UGameHUDPage>(BaseLayoutPage->GetActiveWidget(EPageLayoutStackType::GameUI));
+		if (GameHUDPage)
+		{
+			GameHUDPage->SetHUDConfigurationActive(true);
+			UpdatePageScore();
+		}
 	}
 }
 
