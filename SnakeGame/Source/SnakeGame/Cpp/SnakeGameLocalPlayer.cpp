@@ -23,7 +23,7 @@ void USnakeGameLocalPlayer::SetPlayerProfileSaveGame(UPlayerProfileSaveGame* InP
 	if (InPlayerProfileSaveGame)
 	{
 		PlayerProfileSaveGame = InPlayerProfileSaveGame;
-		GDTUI_LOG(SnakeLogCategorySave, Log, TEXT("Loading player profile save game completed!"));
+		GDTUI_SHORT_LOG(SnakeLogCategorySave, Log, TEXT("Loading player profile save game completed!"));
 		bNeedsSaveGameLoad = false;
 	}
 }
@@ -32,7 +32,7 @@ void USnakeGameLocalPlayer::UpdatePlayerScore(int32 InNewScore)
 {
 	if (InNewScore >= 0)
 	{
-		if (ensure(PlayerProfileSaveGame))
+		if (ensure(PlayerProfileSaveGame) && InNewScore > PlayerProfileSaveGame->Score)
 		{
 			PlayerProfileSaveGame->Score = InNewScore;
 		}
@@ -46,7 +46,7 @@ void USnakeGameLocalPlayer::SaveGame()
 		// Save only on main player.
 		if (UGameplayStatics::SaveGameToSlot(PlayerProfileSaveGame, UPlayerProfileSaveGame::PlayerProfileSlotName, 0))
 		{
-			GDTUI_LOG(SnakeLogCategorySave, Log, TEXT("Savegame completed!"));
+			GDTUI_SHORT_LOG(SnakeLogCategorySave, Log, TEXT("Savegame completed!"));
 		}
 		else
 		{

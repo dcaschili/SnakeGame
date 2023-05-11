@@ -26,11 +26,11 @@ void ASnakeMenuPlayerController::BeginPlay()
 		USnakeGameLocalPlayer* const SnakeGameLocalPlayer = Cast<USnakeGameLocalPlayer>(GetLocalPlayer());
 		if (SnakeGameLocalPlayer && SnakeGameLocalPlayer->GetNeedsSaveGameLoad())
 		{
-			UE_LOG(SnakeLogCategorySave, Log, TEXT("Loading Player profile savegame."));
+			GDTUI_SHORT_LOG(SnakeLogCategorySave, Log, TEXT("Loading Player profile savegame."));
 			UPlayerProfileSaveGame* ProfileSaveGame = Cast<UPlayerProfileSaveGame>(UGameplayStatics::LoadGameFromSlot(UPlayerProfileSaveGame::PlayerProfileSlotName, 0));
 			if (!ProfileSaveGame)
 			{
-				UE_LOG(SnakeLogCategorySave, Log, TEXT("Can't find player profile savegame! Creating a new savegame file!"));
+				GDTUI_LOG(SnakeLogCategorySave, Log, TEXT("Can't find player profile savegame! Creating a new savegame file!"));
 				ProfileSaveGame = Cast<UPlayerProfileSaveGame>(UGameplayStatics::CreateSaveGameObject(UPlayerProfileSaveGame::StaticClass()));
 			}
 
@@ -53,7 +53,7 @@ void ASnakeMenuPlayerController::BeginPlay()
 		}
 		else
 		{
-			UE_LOG(SnakeLogCategoryUI, Error, TEXT("ASnakeMenuPlayerController - Missing Menu Page class"));
+			GDTUI_LOG(SnakeLogCategoryUI, Error, TEXT("ASnakeMenuPlayerController - Missing Menu Page class"));
 			ensure(false);
 		}
 	}
@@ -98,7 +98,7 @@ void ASnakeMenuPlayerController::HandleButtonClicked(const FName& InButtonId)
 	{
 		FString Msg = FString::Printf(TEXT("Missing menu action for button: %s"), *InButtonId.ToString());
 		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, *Msg);
-		UE_LOG(SnakeLogCategoryUI, Error, TEXT("%s"), *Msg);
+		GDTUI_LOG(SnakeLogCategoryUI, Error, TEXT("%s"), *Msg);
 		ensure(false);
 	}
 

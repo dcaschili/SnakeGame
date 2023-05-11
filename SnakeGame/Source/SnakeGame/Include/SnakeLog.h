@@ -2,10 +2,10 @@
 
 #include "GDTUILogMacros.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategoryGame, Log, All);
-DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategoryMap, Log, All);
-DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategorySpawner, Log, All);
-DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategorySnakeBody, Log, All);
-DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategoryUI, Log, All);
-DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategoryScore, Log, All);
-DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategorySave, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategoryGame, Warning, All);
+DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategoryMap, Warning, All);
+DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategorySpawner, Warning, All);
+DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategorySnakeBody, Warning, All);
+DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategoryUI, Warning, All);
+DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategoryScore, Warning, All);
+DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategorySave, Warning, All);
