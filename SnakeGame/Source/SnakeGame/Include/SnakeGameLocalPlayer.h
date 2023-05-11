@@ -20,6 +20,8 @@ public:
 	void UpdatePlayerScore(int32 InNewScore);
 	void SaveGame();
 
+	int32 GetBestScore() const;
+
 private:
 	UPROPERTY()
 	TObjectPtr<UPlayerProfileSaveGame> PlayerProfileSaveGame{};

@@ -12,12 +12,11 @@
 #include "Net/UnrealNetwork.h"
 #include "SnakeMatchGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
-#include "SnakeGameLocalPlayer.h"
 #include "EnhancedInputComponent.h"
 #include "InputTriggers.h"
-#include "Engine/LocalPlayer.h"
 #include "EnhancedInputSubsystems.h"
 #include "Game/SnakePawn.h"
+#include "SnakeGameLocalPlayer.h"
 
 #if !UE_BUILD_SHIPPING
 #include "Engine.h"
@@ -151,7 +150,7 @@ void ASnakeMatchPlayerController::HandleEndGamePageButtonClicked(const FName& In
 		{
 			if(PlayerState)
 			{
-				SnakeLocalPlayer->UpdatePlayerScore(PlayerState->GetScore());
+				SnakeLocalPlayer->UpdatePlayerScore(FMath::RoundToInt(PlayerState->GetScore()));
 				SnakeLocalPlayer->SaveGame();
 			}
 		}
@@ -228,8 +227,20 @@ void ASnakeMatchPlayerController::InnerHandleEndMatch()
 					// Record to event
 					GameOverPage->OnButtonClicked.AddUniqueDynamic(this, &ThisClass::HandleEndGamePageButtonClicked);
 
-					// Setup model.
-					GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, TEXT("Setup endgame page data model!"));
+					// Setup data model.
+					if (UPlayerScoreDataModel* const ScoreDataModel = NewObject<UPlayerScoreDataModel>(GameOverPage))
+					{
+						const USnakeGameLocalPlayer* const SnakeGameLocalPlayer = Cast<USnakeGameLocalPlayer>(GetLocalPlayer());
+						if (SnakeGameLocalPlayer && PlayerState)
+						{
+							ScoreDataModel->BestScore = SnakeGameLocalPlayer->GetBestScore();
+							ScoreDataModel->CurrentScore = FMath::RoundToInt(PlayerState->GetScore());
+							ScoreDataModel->bIsBestScore = ScoreDataModel->BestScore < ScoreDataModel->CurrentScore;
+
+							GDTUI_SHORT_LOG(SnakeLogCategoryGame, Log, ScoreDataModel->bIsBestScore ? TEXT("New record!") : TEXT("No new record!"));
+							GameOverPage->SetDataModel(ScoreDataModel);
+						}
+					}
 				}
 			}
 		}

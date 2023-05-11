@@ -6,7 +6,7 @@
 
 UPlayerProfileSaveGame* USnakeGameLocalPlayer::GetPlayerProfileSaveGame() const
 {
-	if (bNeedsSaveGameLoad)
+	if (!bNeedsSaveGameLoad)
 	{
 		return PlayerProfileSaveGame;
 	}
@@ -54,4 +54,18 @@ void USnakeGameLocalPlayer::SaveGame()
 			ensure(false);
 		}
 	}
+}
+
+int32 USnakeGameLocalPlayer::GetBestScore() const
+{
+	if (PlayerProfileSaveGame)
+	{
+		return PlayerProfileSaveGame->Score;
+	}
+	else
+	{
+		GDTUI_LOG(SnakeLogCategorySave, Warning, TEXT("Requested best score without a savegame!"));
+		ensure(false);
+	}
+	return -1;
 }
