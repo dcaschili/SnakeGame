@@ -38,7 +38,5 @@ protected:
 private:
 	UFUNCTION()
 	void HandleButtonClicked(const FName& InButtonId);
-
-	UPROPERTY()
-	TObjectPtr<UGDTUIUWSimpleButtonListPage> ButtonListPage{};
+	
 };

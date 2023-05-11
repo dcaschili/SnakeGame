@@ -7,7 +7,7 @@
 #include "Pages/GDTUIUWBasePageLayout.h"
 #include "SnakeGamePlayerState.h"
 #include "Data/Model/PlayerScoreDataModel.h"
-#include "Data/Model/GameDataModelDrivenInterface.h"
+#include "Data/Model/GameDataModelUserInterface.h"
 #include "UI/Pages/GameOverPage.h"
 #include "Net/UnrealNetwork.h"
 #include "SnakeMatchGameModeBase.h"
@@ -262,7 +262,7 @@ void ASnakeMatchPlayerController::UpdatePageScore()
 	if (PlayerState && BaseLayoutPage)
 	{
 		UCommonActivatableWidget* const ActivePage = BaseLayoutPage->GetActiveWidget(EPageLayoutStackType::GameUI);
-		if (IGameDataModelDrivenInterface* const Interface = Cast<IGameDataModelDrivenInterface>(ActivePage))
+		if (IGameDataModelUserInterface* const Interface = Cast<IGameDataModelUserInterface>(ActivePage))
 		{
 			if (UPlayerScoreDataModel* const PlayerScoreDataModel = NewObject<UPlayerScoreDataModel>(ActivePage))
 			{
