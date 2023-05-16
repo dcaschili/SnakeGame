@@ -10,6 +10,8 @@ public class SnakeGameTarget : TargetRules
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
 
-		ExtraModuleNames.AddRange( new string[] { "SnakeGame" } );
+        IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
+
+        ExtraModuleNames.AddRange( new string[] { "SnakeGame" } );
 	}
 }
