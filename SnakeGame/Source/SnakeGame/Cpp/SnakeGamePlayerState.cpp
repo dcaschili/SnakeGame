@@ -4,6 +4,7 @@
 #include "SnakeGameGameModeBase.h"
 #include "Game/CollectiblesSpawner.h"
 #include "SnakeLog.h"
+#include "Data/GameConstants.h"
 
 void ASnakeGamePlayerState::OnRep_Score()
 {
@@ -45,6 +46,9 @@ void ASnakeGamePlayerState::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void ASnakeGamePlayerState::HandleCollectibleCollected(const FVector& InCollectibleLocation)
 {
 	GDTUI_SHORT_LOG(SnakeLogCategoryScore, Log, TEXT("Score updated!"));
-	SetScore(GetScore() + 1);
+
+	const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
+
+	SetScore(GetScore() + GameConstants->BaseCollectibleScore);
 	OnPlayerStateScoreUpdated.Broadcast();
 }
