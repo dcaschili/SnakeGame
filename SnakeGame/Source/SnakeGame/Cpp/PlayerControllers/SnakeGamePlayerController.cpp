@@ -3,10 +3,7 @@
 #include "Pages/GDTUIUWBasePageLayout.h"
 #include "Blueprint/UserWidget.h"
 #include "SnakeLog.h"
-
-#if !UE_BUILD_SHIPPING
 #include "Engine.h"
-#endif
 
 void ASnakeGamePlayerController::BeginPlay()
 {
@@ -21,21 +18,34 @@ void ASnakeGamePlayerController::BeginPlay()
 
 void ASnakeGamePlayerController::SetupBaseLayout()
 {
-	if (BaseLayoutPageClass)
+	if (!DefaultLayoutPageClass)
 	{
-		BaseLayoutPage = CreateWidget<UGDTUIUWBasePageLayout>(this, BaseLayoutPageClass);
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Missing base layout page class! You need to setup a base page from .ini"));
+		GDTUI_LOG(SnakeLogCategoryUI, Error, TEXT("Missing base layout page class! You need to setup a base page from Game.ini"));
+		ensure(false);
+		return;
+	}
+
+	TSubclassOf<UGDTUIUWBasePageLayout> TmpPageLayoutClass = DefaultLayoutPageClass;
+	if (bOverrideDefaultLayoutPageClass)
+	{
+		if (!LayoutPageClassOverride)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, TEXT("ERROR: wrong base layout page configuration."));
+			GDTUI_LOG(SnakeLogCategoryUI, Error, TEXT("Layout override requested but missing layout class in configuration!"));
+			ensure(false);
+			return;
+		}
+
+		TmpPageLayoutClass = LayoutPageClassOverride;
+	}
+
+	if (ensure(TmpPageLayoutClass))
+	{
+		BaseLayoutPage = CreateWidget<UGDTUIUWBasePageLayout>(this, TmpPageLayoutClass);
 		if (ensure(BaseLayoutPage))
 		{
 			BaseLayoutPage->AddToViewport();
 		}
-	}
-	else
-	{
-#if !UE_BUILD_SHIPPING
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Missing base layout page class!"));
-#endif // !UE_BUILD_SHIPPING
-
-		UE_LOG(SnakeLogCategoryUI, Warning, TEXT("Missing base layout page class!"));
-		ensure(false);
 	}
 }

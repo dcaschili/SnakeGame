@@ -72,7 +72,7 @@ void ASnakeMenuPlayerController::BeginPlay()
 
 void ASnakeMenuPlayerController::BindEvents()
 {
-	if (ensure(BaseLayoutPage))
+	if (BaseLayoutPage)
 	{
 		if (UGDTUIUWSimpleButtonListPage* const Page = Cast<UGDTUIUWSimpleButtonListPage>(BaseLayoutPage->GetActiveWidget(EPageLayoutStackType::Main)))
 		{
@@ -83,7 +83,7 @@ void ASnakeMenuPlayerController::BindEvents()
 
 void ASnakeMenuPlayerController::UnbindEvents()
 {
-	if (ensure(BaseLayoutPage))
+	if (BaseLayoutPage)
 	{
 		if (UGDTUIUWSimpleButtonListPage* const Page = Cast<UGDTUIUWSimpleButtonListPage>(BaseLayoutPage->GetActiveWidget(EPageLayoutStackType::Main)))
 		{

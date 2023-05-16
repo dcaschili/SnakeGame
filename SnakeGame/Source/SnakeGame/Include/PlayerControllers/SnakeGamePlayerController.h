@@ -7,7 +7,7 @@
 
 class UGDTUIUWBasePageLayout;
 
-UCLASS()
+UCLASS(Config=Game)
 class SNAKEGAME_API ASnakeGamePlayerController : public APlayerController
 {
     GENERATED_BODY()
@@ -15,12 +15,18 @@ class SNAKEGAME_API ASnakeGamePlayerController : public APlayerController
 protected:
 	virtual void BeginPlay() override;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|UI")
-	TSubclassOf<UGDTUIUWBasePageLayout> BaseLayoutPageClass{};
 	
 	UPROPERTY()
 	TObjectPtr<UGDTUIUWBasePageLayout> BaseLayoutPage{};
 
 private:
+	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|UI", meta = (EditCondition = "bOverrideDefaultLayoutPageClass"))
+	TSubclassOf<UGDTUIUWBasePageLayout> LayoutPageClassOverride{};
+	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|UI")
+	bool bOverrideDefaultLayoutPageClass = false;
+	UPROPERTY(Config)
+	TSubclassOf<UGDTUIUWBasePageLayout> DefaultLayoutPageClass{};
+
+
 	void SetupBaseLayout();
 };

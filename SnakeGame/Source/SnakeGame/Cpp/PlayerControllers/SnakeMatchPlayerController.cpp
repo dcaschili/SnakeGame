@@ -237,7 +237,15 @@ void ASnakeMatchPlayerController::InnerHandleEndMatch()
 							ScoreDataModel->CurrentScore = FMath::RoundToInt(PlayerState->GetScore());
 							ScoreDataModel->bIsBestScore = ScoreDataModel->BestScore < ScoreDataModel->CurrentScore;
 
-							GDTUI_SHORT_LOG(SnakeLogCategoryGame, Log, ScoreDataModel->bIsBestScore ? TEXT("New record!") : TEXT("No new record!"));
+							if (ScoreDataModel->bIsBestScore)
+							{
+								GDTUI_SHORT_LOG(SnakeLogCategoryGame, Log, TEXT("New record!"));
+							}
+							else
+							{
+								GDTUI_SHORT_LOG(SnakeLogCategoryGame, Log, TEXT("No new record!"));
+							}
+
 							GameOverPage->SetDataModel(ScoreDataModel);
 						}
 					}
