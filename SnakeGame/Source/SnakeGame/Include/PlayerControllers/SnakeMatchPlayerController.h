@@ -36,11 +36,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Inputs")
 	TObjectPtr<UInputAction> StartMatchIA{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Inputs")
+	TObjectPtr<UInputAction> CloseGameIA{};
+	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Inputs")
 	TObjectPtr<UInputMappingContext> InputMappingContext{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Game")
 	TSubclassOf<ASnakePawn> SnakePawnClass{};
 
 private:
+	UFUNCTION()
+	void HandleCloseGameAction(const FInputActionInstance& InputActionInstance);
 	UFUNCTION()
 	void HandleStartMatchAction(const FInputActionInstance& InputActionInstance);
 	UFUNCTION()
