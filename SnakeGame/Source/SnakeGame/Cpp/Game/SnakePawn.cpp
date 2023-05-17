@@ -14,6 +14,7 @@
 #include "Game/CollectiblesSpawner.h"
 #include "SnakeGameGameModeBase.h"
 #include "Game/Components/EndGameOverlapDetectionComponent.h"
+#include "Audio/SnakeChangeDirectionAudioComponent.h"
 
 #if !UE_BUILD_SHIPPING
 #include "DrawDebugHelpers.h"
@@ -50,6 +51,7 @@ ASnakePawn::ASnakePawn()
 		MapOccupancyComponent->SetEnableContinuousTileOccupancyTest(true);
 	}
 	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));
+	SnakeChangeDirectionAudioComponent = CreateDefaultSubobject<USnakeChangeDirectionAudioComponent>(TEXT("SnakeChangeDirectionAudioComponent"));
 }
 
 void ASnakePawn::PossessedBy(AController* NewController)

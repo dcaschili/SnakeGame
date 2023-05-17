@@ -15,6 +15,7 @@ class USnakeBodyPartMoveComponent;
 class ASnakeBodyPart;
 class ASnakeBodyPartSpawner;
 class UEndGameOverlapDetectionComponent;
+class USnakeChangeDirectionAudioComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeDirectionDelegate, const FChangeDirectionAction&, NewDirectionAction);
 
@@ -68,6 +69,8 @@ private:
 	TObjectPtr<UMapOccupancyComponent> MapOccupancyComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<USnakeBodyPartMoveComponent> SnakeMovementComponent{};
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
+	TObjectPtr<USnakeChangeDirectionAudioComponent> SnakeChangeDirectionAudioComponent{};
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Inputs")
 	TObjectPtr<UInputAction> MoveRightIA{};
