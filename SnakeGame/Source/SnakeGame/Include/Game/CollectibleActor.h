@@ -6,6 +6,7 @@
 
 class UMapOccupancyComponent;
 class UStaticMeshComponent;
+class UCollectibleAudioComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCollectedActorEvent, const FVector&, InCollectibleLocation);
 
@@ -28,4 +29,6 @@ private:
 	TObjectPtr<UStaticMeshComponent> StaticMeshComp{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UMapOccupancyComponent> MapOccupancyComponent{};
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
+	TObjectPtr<UCollectibleAudioComponent> CollectibleAudioComponent{};
 };

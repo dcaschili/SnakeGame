@@ -3,6 +3,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Game/Map/MapOccupancyComponent.h"
 #include "Game/SnakePawn.h"
+#include "Audio/CollectibleAudioComponent.h"
 
 ACollectibleActor::ACollectibleActor()
 	: Super()
@@ -15,6 +16,7 @@ ACollectibleActor::ACollectibleActor()
 	}
 
 	MapOccupancyComponent = CreateDefaultSubobject<UMapOccupancyComponent>(TEXT("MapOccupancyComponent"));
+	CollectibleAudioComponent = CreateDefaultSubobject<UCollectibleAudioComponent>(TEXT("CollectibleAudioComponent"));
 }
 
 void ACollectibleActor::EnableCollectible()
