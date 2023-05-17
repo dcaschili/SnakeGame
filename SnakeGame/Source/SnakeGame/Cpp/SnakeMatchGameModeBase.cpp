@@ -13,6 +13,7 @@ void ASnakeMatchGameModeBase::StartMatch()
 	{
 		GDTUI_LOG(SnakeLogCategoryGame, Warning, TEXT("Start match called multiple times!"));
 		ensure(false);
+		return;
 	}
 
 

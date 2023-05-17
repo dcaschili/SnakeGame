@@ -39,6 +39,10 @@ protected:
 	TObjectPtr<UInputAction> CloseGameIA{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Inputs")
 	TObjectPtr<UInputMappingContext> InputMappingContext{};
+	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Inputs")
+	TObjectPtr<UInputMappingContext> BeforeMatchMappingContext{};
+
+
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Game")
 	TSubclassOf<ASnakePawn> SnakePawnClass{};
 

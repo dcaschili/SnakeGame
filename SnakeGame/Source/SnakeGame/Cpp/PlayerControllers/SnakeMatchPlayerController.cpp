@@ -18,9 +18,7 @@
 #include "Game/SnakePawn.h"
 #include "SnakeGameLocalPlayer.h"
 
-#if !UE_BUILD_SHIPPING
 #include "Engine.h"
-#endif // !UE_BUILD_SHIPPING
 
 void ASnakeMatchPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
@@ -57,13 +55,13 @@ void ASnakeMatchPlayerController::BeginPlay()
 	SetShowMouseCursor(false);
 
 	// Setup input mapping
-	if (InputMappingContext)
+	if (BeforeMatchMappingContext)
 	{
 		const ULocalPlayer* const LP = GetLocalPlayer();
 		UEnhancedInputLocalPlayerSubsystem* const EnhancedInputSubsystem = LP ? LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() : nullptr;
 		if (ensure(EnhancedInputSubsystem))
 		{
-			EnhancedInputSubsystem->AddMappingContext(InputMappingContext, 0);
+			EnhancedInputSubsystem->AddMappingContext(BeforeMatchMappingContext, 0);
 		}
 		else
 		{
@@ -73,7 +71,8 @@ void ASnakeMatchPlayerController::BeginPlay()
 	}
 	else
 	{
-		GDTUI_LOG(SnakeLogCategoryGame, Error, TEXT("Missing InputMapping Context"));
+		GDTUI_PRINT_TO_SCREEN_ERROR(TEXT("Missing Before match input mapping context"));
+		GDTUI_LOG(SnakeLogCategoryGame, Error, TEXT("Missing Before match input mapping context"));
 		ensure(false);
 	}
 
@@ -90,10 +89,8 @@ void ASnakeMatchPlayerController::BeginPlay()
 		}
 		else
 		{
-#if !UE_BUILD_SHIPPING
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("ASnakeMatchPlayerController - Missing HUD page class!"));
-#endif // !UE_BUILD_SHIPPING
-			UE_LOG(SnakeLogCategoryUI, Warning, TEXT("ASnakeMatchPlayerController - Missing HUD page class!"));
+			GDTUI_PRINT_TO_SCREEN_WARN(TEXT("Missing HUD page class!"));
+			GDTUI_LOG(SnakeLogCategoryUI, Warning, TEXT("ASnakeMatchPlayerController - Missing HUD page class!"));
 			ensure(false);
 		}
 	}
@@ -154,6 +151,26 @@ void ASnakeMatchPlayerController::HandleStartMatchAction(const FInputActionInsta
 {
 	GDTUI_LOG(SnakeLogCategoryGame, Log, TEXT("Start match requested!"));
 
+	ULocalPlayer* const LP = GetLocalPlayer();
+	UEnhancedInputLocalPlayerSubsystem* const EnhancedInputSubsystem = LP ? LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() : nullptr;
+	if (EnhancedInputSubsystem)
+	{
+		if (BeforeMatchMappingContext)
+		{
+			EnhancedInputSubsystem->RemoveMappingContext(BeforeMatchMappingContext);
+		}
+
+		if (InputMappingContext)
+		{
+			EnhancedInputSubsystem->AddMappingContext(InputMappingContext, 0);
+		}
+	}
+	else
+	{
+		GDTUI_LOG(SnakeLogCategoryGame, Warning, TEXT("Can't find enhanced input subsystem!"));
+		ensure(false);
+	}
+
 	Server_StartMatch();
 }
 
@@ -180,7 +197,7 @@ void ASnakeMatchPlayerController::HandleEndGamePageButtonClicked(const FName& In
 void ASnakeMatchPlayerController::HandleEndMatchDelegate()
 {
 	GDTUI_LOG(SnakeLogCategoryGame, Verbose, TEXT("Received endgame delegate event on the server!"));
-	
+
 	// Forward event to all client.
 	Multicast_EndMatch();
 }
@@ -225,6 +242,8 @@ void ASnakeMatchPlayerController::HandleStartMatchDelegate()
 
 void ASnakeMatchPlayerController::InnerHandleEndMatch()
 {
+	SetPause(true);
+
 	// If on the client and has authority, show the end game page
 	if (GetNetMode() != NM_DedicatedServer && HasAuthority())
 	{
@@ -232,7 +251,7 @@ void ASnakeMatchPlayerController::InnerHandleEndMatch()
 		SetInputMode(InputModeUIOnly);
 		SetShowMouseCursor(true);
 
-		UE_LOG(SnakeLogCategoryGame, Verbose, TEXT("ASnakeMatchPlayerController - Show EndGame page on client!"));
+		GDTUI_SHORT_LOG(SnakeLogCategoryGame, Verbose, TEXT("ASnakeMatchPlayerController - Show EndGame page on client!"));
 
 		if (GameOverPageClass)
 		{
