@@ -51,6 +51,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body", meta = (ClampMin = 1))
 	int32 SnakeNoCollisionBodySize = 3;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Snake|Score", meta = (ClampMin = 1))
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body", meta = (ClampMin = 1.0f))
+	float BodySpawnHeight = 50.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Collectibles", meta = (ClampMin = 1))
 	int32 BaseCollectibleScore = 10;
+
 };

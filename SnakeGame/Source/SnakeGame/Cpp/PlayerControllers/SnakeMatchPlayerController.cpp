@@ -17,6 +17,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Game/SnakePawn.h"
 #include "SnakeGameLocalPlayer.h"
+#include "Data/GameConstants.h"
 
 #include "Engine.h"
 
@@ -208,6 +209,7 @@ void ASnakeMatchPlayerController::HandleStartMatchDelegate()
 	{
 		GDTUI_SHORT_LOG(SnakeLogCategoryGame, Log, TEXT("Spawning snake pawn!"));
 		
+		// This will work only on the server.
 		ASnakeMatchGameModeBase* const SnakeMatchGameMode = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this));
 		AActor* const PlayerStart = SnakeMatchGameMode ? SnakeMatchGameMode->FindPlayerStart(this) : nullptr;
 
@@ -215,8 +217,14 @@ void ASnakeMatchPlayerController::HandleStartMatchDelegate()
 		{
 			if (UWorld* World = GetWorld())
 			{
+				const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
+				ensure(GameConstants);
+				const float StartingHeight = GameConstants ? GameConstants->BodySpawnHeight : 1.0f;
+
+				FVector StartingSpawnLocation = PlayerStart->GetActorLocation();
+				StartingSpawnLocation.Z = StartingHeight;
 				GDTUI_SHORT_LOG(SnakeLogCategoryGame, Log, TEXT("Snake spawn completed!"));
-				ASnakePawn* const SnakePawn = World->SpawnActor<ASnakePawn>(SnakePawnClass, PlayerStart->GetActorLocation(), FRotator::ZeroRotator);
+				ASnakePawn* const SnakePawn = World->SpawnActor<ASnakePawn>(SnakePawnClass, StartingSpawnLocation, FRotator::ZeroRotator);
 				
 				Possess(SnakePawn);
 			}

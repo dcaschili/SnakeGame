@@ -93,7 +93,10 @@ void ASnakeBodyPartSpawner::BeginPlay()
 	Super::BeginPlay();
 
 	const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
+	ensure(GameConstants);
+
 	NoCollisionBodyPartsCount = GameConstants ? GameConstants->SnakeNoCollisionBodySize : 0;
+	BodyPartStartingHeight = GameConstants ? GameConstants->BodySpawnHeight : 1.0f;
 }
 
 void ASnakeBodyPartSpawner::SpawnBodyPart(ASnakePawn* InSnakePawn, const FVector& InMoveDirection, const TArray<FChangeDirectionAction>& InChangeDirectionQueue /* = {}*/)
@@ -103,7 +106,9 @@ void ASnakeBodyPartSpawner::SpawnBodyPart(ASnakePawn* InSnakePawn, const FVector
 		UWorld* const World = GetWorld();
 		if (ensure(World))
 		{
-			ASnakeBodyPart* const SnakeBodyPart = World->SpawnActor<ASnakeBodyPart>(SnakeBodyPartClass, GetActorLocation(), FRotator::ZeroRotator);
+			FVector SpawnLocation = GetActorLocation();
+			SpawnLocation.Z = BodyPartStartingHeight;
+			ASnakeBodyPart* const SnakeBodyPart = World->SpawnActor<ASnakeBodyPart>(SnakeBodyPartClass, SpawnLocation, FRotator::ZeroRotator);
 			if (ensure(SnakeBodyPart))
 			{
 				SnakeBodyPart->SetSnakeBodyPartType(ESnakeBodyPartType::kTail);
