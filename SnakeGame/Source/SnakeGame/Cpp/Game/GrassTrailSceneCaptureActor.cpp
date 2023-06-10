@@ -59,6 +59,11 @@ void AGrassTrailSceneCaptureActor::BeginPlay()
 
 		ToHideActors.Empty();
 		UGameplayStatics::GetAllActorsWithTag(this, GameConstants->GrassFloorTag, ToHideActors);
+		if (ToHideActors.IsEmpty())
+		{
+			GDTUI_SHORT_LOG(SnakeLogCategoryGame, Warning, TEXT("Missing floor tag in mesh, the scene capture component may not work!"));
+			ensure(false);
+		}
 		for (AActor* const Actor : ToHideActors)
 		{
 			SceneCaptureComponent2D->HiddenActors.AddUnique(Actor);

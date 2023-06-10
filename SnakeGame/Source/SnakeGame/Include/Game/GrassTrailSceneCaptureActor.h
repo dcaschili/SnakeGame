@@ -16,11 +16,11 @@ public:
 
 protected:
 	
-	virtual void BeginPlay();
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
-	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|SceneCapture")
+	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|GrassTrail")
 	TObjectPtr<class UTextureRenderTarget2D> TextureTarget{};
 	UPROPERTY()
 	TObjectPtr<USceneCaptureComponent2D> SceneCaptureComponent2D{};
