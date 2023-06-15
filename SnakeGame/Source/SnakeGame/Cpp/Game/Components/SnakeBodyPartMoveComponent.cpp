@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "SnakeMatchGameModeBase.h"
+#include "Game/Map/MapFunctionLibrary.h"
 
 USnakeBodyPartMoveComponent::USnakeBodyPartMoveComponent()
 	: Super()
@@ -74,48 +75,48 @@ void USnakeBodyPartMoveComponent::TickComponent(float DeltaTime, ELevelTick Tick
 	if (!bIsMovementEnabled) return;
 
 	check(GetOwner());
-	FVector CurrentPos = GetOwner()->GetActorLocation();
+	FVector CurrentPos = GetOwner()->GetActorLocation();	
+	
+	const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
+	ensure(GameConstants);
+	float MovementAmountWithDeltaTime = (GameConstants ? GameConstants->MaxMovementSpeed : 1.0f) * DeltaTime;
 
 	if (bDirectionChanged)
 	{
-		if (FMath::IsNearlyZero(MoveDirection.X))
+		FVector TileCenter{};
+		if (UMapFunctionLibrary::AlignWorldLocationToTileCenter(this, CurrentPos, TileCenter))
 		{
-			int32 TmpX = FMath::Abs(CurrentPos.X);
-			int32 SignX = FMath::Sign(CurrentPos.X);
+			FVector TmpCurrentPos = CurrentPos;
+			TmpCurrentPos.Z = 0.0f;
 
-			// Center on the vertical coordinate
+			float DistanceToTileCenter = (TileCenter - TmpCurrentPos).Length();
+			ensure(MovementAmountWithDeltaTime >= DistanceToTileCenter);
+
 			/*
-				Take the current tile top left coordinate to avoid "jump to next tile" effect.
-				If the coordinate is > 0.5, the rounding will move to the next tile.
+				Take into consideration the movement executed to 
+				reach the tile center.
 			*/
-			int32 XValue = FMath::Floor(TmpX);
-			int32 CurrentTileXValue = XValue - (XValue % TileSize) + HalfTileSize;
-			CurrentPos.X = CurrentTileXValue * SignX;
-		}
-		else if (FMath::IsNearlyZero(MoveDirection.Y))
-		{
-			int32 TmpY = FMath::Abs(CurrentPos.Y);
-			int32 SignY = FMath::Sign(CurrentPos.Y);
+			MovementAmountWithDeltaTime -= DistanceToTileCenter;
+			
+			/* 
+				Setup position on tile center waiting to move 
+				toward the new direction by the remaining amount
+			*/
+			TmpCurrentPos = TileCenter;
+			TmpCurrentPos.Z = CurrentPos.Z;
 
-			// Center on the horizontal coordinate
-			int32 YValue = FMath::Floor(TmpY);
-			// Take the current tile top left coordinate.
-			int32 CurrentTileYValue = YValue - (YValue % TileSize) + HalfTileSize;
-			CurrentPos.Y = CurrentTileYValue * SignY;
+			CurrentPos = TmpCurrentPos;			
+			
+			bDirectionChanged = false;
 		}
 		else
-		{
-			// Something wrong in the movement direction setup
-			UE_LOG(SnakeLogCategoryGame, Warning, TEXT("Something went wrong in the MovementDirection setup: %s"), *MoveDirection.ToString());
+		{			
+			GDTUI_LOG(SnakeLogCategoryGame, Error, TEXT("Unable to find a corresponding map tile for current position!"));
 			check(false);
 		}
 	}
 
-	const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
-	ensure(GameConstants);
-	const float MaxMovementSpeed = GameConstants ? GameConstants->MaxMovementSpeed : 1.0f;
-
-	const FVector NewPos = CurrentPos + (MoveDirection * DeltaTime * MaxMovementSpeed);
+	const FVector NewPos = CurrentPos + (MoveDirection * MovementAmountWithDeltaTime);
 
 	GetOwner()->SetActorLocation(NewPos, true);
 
@@ -123,7 +124,7 @@ void USnakeBodyPartMoveComponent::TickComponent(float DeltaTime, ELevelTick Tick
 	{
 		if (AController* const Controller = GetOwningController())
 		{
-			FRotator FacingDir = UKismetMathLibrary::FindLookAtRotation(NewPos, NewPos + MoveDirection * 500.0f);
+			const FRotator FacingDir = UKismetMathLibrary::FindLookAtRotation(NewPos, NewPos + MoveDirection * 500.0f);
 			Controller->SetControlRotation(FacingDir);
 		}
 		else
