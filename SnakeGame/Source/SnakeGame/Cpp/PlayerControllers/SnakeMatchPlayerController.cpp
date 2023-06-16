@@ -63,7 +63,7 @@ void ASnakeMatchPlayerController::BeginPlay()
 		UEnhancedInputLocalPlayerSubsystem* const EnhancedInputSubsystem = LP ? LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() : nullptr;
 		if (ensure(EnhancedInputSubsystem))
 		{
-			EnhancedInputSubsystem->AddMappingContext(BeforeMatchMappingContext, 0);
+			EnhancedInputSubsystem->AddMappingContext(BeforeMatchMappingContext, 0);	
 		}
 		else
 		{
@@ -130,16 +130,6 @@ void ASnakeMatchPlayerController::SetupInputComponent()
 			GDTUI_SHORT_LOG(SnakeLogCategoryGame, Warning, TEXT("Missing Start Match IA"));
 			ensure(false);
 		}
-
-		if (CloseGameIA)
-		{
-			EnhancedInputComponent->BindAction(CloseGameIA, ETriggerEvent::Triggered, this, &ThisClass::HandleCloseGameAction);
-		}
-		else
-		{
-			GDTUI_SHORT_LOG(SnakeLogCategoryGame, Warning, TEXT("Missing CloseGameIA"));
-			ensure(false);
-		}
 	}
 }
 
@@ -147,13 +137,6 @@ void ASnakeMatchPlayerController::Multicast_EndMatch_Implementation()
 {
 	GDTUI_LOG(SnakeLogCategoryGame, Verbose, TEXT("Received EndGame from server"));
 	InnerHandleEndMatch();
-}
-
-void ASnakeMatchPlayerController::HandleCloseGameAction(const FInputActionInstance& InputActionInstance)
-{
-	GDTUI_LOG(SnakeLogCategoryGame, Log, TEXT("Close game requested!"));
-
-	UKismetSystemLibrary::QuitGame(this, this, EQuitPreference::Quit, false);
 }
 
 void ASnakeMatchPlayerController::HandleStartMatchAction(const FInputActionInstance& InputActionInstance)
