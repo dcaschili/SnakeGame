@@ -23,15 +23,10 @@ public:
 	FVector GetMoveDirection() const { return MoveDirection; }
 
 private:
-	UFUNCTION()
-	void HandleEndMatch();
-
 	AController* GetOwningController() const;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SnakeGame|Movement", meta = (AllowPrivateAccess = true))
 	bool bUpdateControlRotation = false;
-	UPROPERTY(Replicated)
-	bool						bIsMovementEnabled = true;
 
 	TOptional<FVector>			PreviousMoveDirection{};
 	bool						bDirectionChanged = false;

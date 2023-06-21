@@ -1,11 +1,10 @@
 #include "Game/Components/SnakeBodyPartMoveComponent.h"
 
 #include "Data/GameConstants.h"
+#include "GameFramework/Pawn.h"
 #include "SnakeLog.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Kismet/GameplayStatics.h"
-#include "Net/UnrealNetwork.h"
-#include "SnakeMatchGameModeBase.h"
+#include "GameFramework/Controller.h"
 #include "Game/Map/MapFunctionLibrary.h"
 
 USnakeBodyPartMoveComponent::USnakeBodyPartMoveComponent()
@@ -26,23 +25,10 @@ void USnakeBodyPartMoveComponent::BeginPlay()
 
 	TileSize = GameConstants->TileSize;
 	HalfTileSize = TileSize / 2.0f;
-
-	if (ASnakeMatchGameModeBase* const SnakeGameMode = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this)))
-	{
-		// Works only on the server
-		SnakeGameMode->OnEndMatch.AddUniqueDynamic(this, &ThisClass::HandleEndMatch);
-	}
-	
 }
 
 void USnakeBodyPartMoveComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (ASnakeMatchGameModeBase* const SnakeGameMode = Cast<ASnakeMatchGameModeBase>(UGameplayStatics::GetGameMode(this)))
-	{
-		// Works only on the server
-		SnakeGameMode->OnEndMatch.RemoveDynamic(this, &ThisClass::HandleEndMatch);
-	}
-
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -51,12 +37,6 @@ void USnakeBodyPartMoveComponent::ChangeMoveDirection(const FVector& InNewDirect
 	PreviousMoveDirection = MoveDirection;
 	MoveDirection = InNewDirection;
 	bDirectionChanged = true;
-}
-
-void USnakeBodyPartMoveComponent::HandleEndMatch()
-{
-	bIsMovementEnabled = false;
-	UE_LOG(SnakeLogCategoryGame, Verbose, TEXT("USnakeBodyPartMoveComponent - Stop movement!"));
 }
 
 AController* USnakeBodyPartMoveComponent::GetOwningController() const
@@ -72,8 +52,6 @@ void USnakeBodyPartMoveComponent::TickComponent(float DeltaTime, ELevelTick Tick
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
-	if (!bIsMovementEnabled) return;
-
 	check(GetOwner());
 	FVector CurrentPos = GetOwner()->GetActorLocation();	
 	
@@ -133,11 +111,4 @@ void USnakeBodyPartMoveComponent::TickComponent(float DeltaTime, ELevelTick Tick
 			ensure(false);
 		}
 	}
-}
-
-void USnakeBodyPartMoveComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(USnakeBodyPartMoveComponent, bIsMovementEnabled);
 }

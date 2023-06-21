@@ -14,12 +14,13 @@ void ASnakeMatchGameModeBase::StartMatch()
 		GDTUI_LOG(SnakeLogCategoryGame, Warning, TEXT("Start match called multiple times!"));
 		ensure(false);
 		return;
-	}
+	}	
 
 
 #if !UE_BUILD_SHIPPING
-	GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Orange, TEXT("Starting match!"));
+	GDTUI_PRINT_TO_SCREEN_LOG(TEXT("Starting Match!"));
 #endif // !UE_BUILD_SHIPPING
+
 	GDTUI_SHORT_LOG(SnakeLogCategoryGame, Log, TEXT("Starting match!"));
 	OnStartMatch.Broadcast();
 
@@ -38,7 +39,7 @@ void ASnakeMatchGameModeBase::StartMatch()
 void ASnakeMatchGameModeBase::EndMatch()
 {
 #if !UE_BUILD_SHIPPING
-	GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Orange, TEXT("Match ended!"));
+	GDTUI_PRINT_TO_SCREEN_LOG(TEXT("Match ended!"));
 #endif // !UE_BUILD_SHIPPING
 	GDTUI_SHORT_LOG(SnakeLogCategoryGame, Log, TEXT("Match ended!"));
 	OnEndMatch.Broadcast();
