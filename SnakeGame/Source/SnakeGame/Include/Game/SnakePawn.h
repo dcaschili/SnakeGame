@@ -87,11 +87,19 @@ private:
 	UPROPERTY()
 	TArray<ASnakeBodyPart*> SnakeBody{};
 
+	
 	FVector				MoveDirection = FVector::RightVector;
 	TOptional<FVector>	PendingMoveDirection{};
 	int32				TileSize = 0;
 	int32				HalfTileSize = 0;
 	float				DistanceFromTileCenterTolerance = 0.0f;
+	/* 
+		After a direction change, I should wait for the new tile center 
+		before aplying a new change. The user can change direction but it 
+		isn't applied until the new tile center.
+	*/
+	bool				bChangeDirectionEnabled = true;
+
 
 #if !UE_BUILD_SHIPPING
 	FTimerHandle SnakePositionDebuggerTimerHandle{};
