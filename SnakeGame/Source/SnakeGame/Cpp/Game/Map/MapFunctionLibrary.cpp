@@ -5,9 +5,6 @@
 
 bool UMapFunctionLibrary::GetMapTileFromWorldLocation(const UObject* InWorldContextObject, const FVector& InLocation, FIntVector2& OutTileLocation)
 {
-	AMapManager* const MapManager = AMapManager::GetMapManager(InWorldContextObject);
-
-
 	const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(InWorldContextObject);
 	check(GameConstants);
 
