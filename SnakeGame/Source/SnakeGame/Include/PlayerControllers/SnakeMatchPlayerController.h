@@ -9,6 +9,7 @@ class UGameOverPage;
 class UInputAction;
 class UInputMappingContext;
 class ASnakePawn;
+class AGrassTrailManagerActor;
 
 UCLASS()
 class SNAKEGAME_API ASnakeMatchPlayerController : public ASnakeGamePlayerController
@@ -37,8 +38,14 @@ protected:
 	TObjectPtr<UInputAction> StartMatchIA{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Inputs")
 	TObjectPtr<UInputMappingContext> InputMappingContext{};
+	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Inputs")
+	TObjectPtr<UInputMappingContext> BeforeMatchMappingContext{};
+
+
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Game")
 	TSubclassOf<ASnakePawn> SnakePawnClass{};
+	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Game")
+	TSubclassOf<AGrassTrailManagerActor> GrassTrailManagerClass{};
 
 private:
 	UFUNCTION()
@@ -67,4 +74,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category="SnakeGame|UI")
 	FName GameOverPageContinueButtonId{};
+	
+	TWeakObjectPtr<AGrassTrailManagerActor> GrassTrailManagerActor{};
+
 };

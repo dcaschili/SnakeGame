@@ -9,3 +9,4 @@ DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategorySnakeBody, Warning, All);
 DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategoryUI, Warning, All);
 DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategoryScore, Warning, All);
 DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategorySave, Warning, All);
+DECLARE_LOG_CATEGORY_EXTERN(SnakeLogCategoryAudio, Warning, All);

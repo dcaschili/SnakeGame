@@ -37,9 +37,10 @@ void ASnakeMenuPlayerController::BeginPlay()
 		SnakeGameLocalPlayer->SetPlayerProfileSaveGame(ProfileSaveGame);
 	}
 
-	FInputModeUIOnly InputModeUIOnly{};
-	InputModeUIOnly.SetLockMouseToViewportBehavior(EMouseLockMode::LockOnCapture);
-	SetInputMode(InputModeUIOnly);
+
+	FInputModeGameAndUI InputModeGameAndUI{};	
+	InputModeGameAndUI.SetLockMouseToViewportBehavior(EMouseLockMode::LockOnCapture);
+	SetInputMode(InputModeGameAndUI);
 	SetShowMouseCursor(true);
 
 	// Setup layout and page

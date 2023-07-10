@@ -35,4 +35,6 @@ private:
 	int32 BodyPartToSpawnCount = 1;
 	int32 NoCollisionBodyPartsCount = 0;
 	bool bSpawnCompleted = false;
+	
+	float BodyPartStartingHeight = 50.0f;
 };

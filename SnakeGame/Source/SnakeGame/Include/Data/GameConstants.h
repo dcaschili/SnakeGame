@@ -12,6 +12,9 @@ public:
 
 	static const UGameConstants* GetGameConstants(const UObject* InWorldContextObject);
 
+	/** Returns the map size in unreal units. */
+	int32 GetMapSideSize() const { return TileSize * MapSideTilesCount; }
+
     /**
 		Size of a tile of the map in Unreal units.
      */
@@ -51,6 +54,13 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body", meta = (ClampMin = 1))
 	int32 SnakeNoCollisionBodySize = 3;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Snake|Score", meta = (ClampMin = 1))
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body", meta = (ClampMin = 1.0f))
+	float BodySpawnHeight = 50.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Collectibles", meta = (ClampMin = 1))
 	int32 BaseCollectibleScore = 10;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sanek|GrassTrail")
+	FName GrassFloorTag = FName("GrassFloorTag");
+
 };

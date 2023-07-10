@@ -5,7 +5,7 @@
 */Build/
 */Builds/
 */enc_temp_folder/
-
+/SnakeGame/Content/Extern/*
 
 # Visual Studio 2015 user specific files
 .vs/

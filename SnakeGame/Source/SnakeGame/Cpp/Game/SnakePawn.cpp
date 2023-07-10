@@ -14,6 +14,7 @@
 #include "Game/CollectiblesSpawner.h"
 #include "SnakeGameGameModeBase.h"
 #include "Game/Components/EndGameOverlapDetectionComponent.h"
+#include "Audio/SnakeChangeDirectionAudioComponent.h"
 
 #if !UE_BUILD_SHIPPING
 #include "DrawDebugHelpers.h"
@@ -50,6 +51,7 @@ ASnakePawn::ASnakePawn()
 		MapOccupancyComponent->SetEnableContinuousTileOccupancyTest(true);
 	}
 	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));
+	SnakeChangeDirectionAudioComponent = CreateDefaultSubobject<USnakeChangeDirectionAudioComponent>(TEXT("SnakeChangeDirectionAudioComponent"));
 }
 
 void ASnakePawn::PossessedBy(AController* NewController)
@@ -105,15 +107,19 @@ void ASnakePawn::Tick(float DeltaSeconds)
 
 	FVector CurrentPos = GetActorLocation();
 
-	if (PendingMoveDirection.IsSet())
+	const bool bIsPositionNearTileCenter = UMapFunctionLibrary::IsWorldLocationNearCurrentTileCenter(this, CurrentPos);
+
+	if (PendingMoveDirection.IsSet() && bChangeDirectionEnabled)
 	{
 		// Check if the snake is near the center of the tile to allow for the change in direction
 		// If this is basically the center of the tile, allow the change in direction. 
 		// Otherwise let's proceed in this same direction until we reach a center.	
-		if(UMapFunctionLibrary::IsWorldLocationNearCurrentTileCenter(this, CurrentPos))
+		if(bIsPositionNearTileCenter)
 		{ 
 			MoveDirection = PendingMoveDirection.GetValue();
 			PendingMoveDirection.Reset();
+			GDTUI_SHORT_LOG(SnakeLogCategorySnakeBody, VeryVerbose, TEXT("Disable change direction!"));
+			bChangeDirectionEnabled = false;
 
 			check(SnakeMovementComponent);
 			SnakeMovementComponent->ChangeMoveDirection(MoveDirection);
@@ -132,6 +138,12 @@ void ASnakePawn::Tick(float DeltaSeconds)
 
 			OnChangeDirection.Broadcast(ChangeDirectionAction);
 		}
+	}
+
+	if (!bChangeDirectionEnabled && !bIsPositionNearTileCenter)
+	{
+		GDTUI_SHORT_LOG(SnakeLogCategorySnakeBody, VeryVerbose, TEXT("Enable change direction!"));
+		bChangeDirectionEnabled = true;
 	}
 }
 

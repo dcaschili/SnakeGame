@@ -40,7 +40,7 @@ void ASnakeBodyPartSpawner::NotifyActorEndOverlap(AActor* OtherActor)
 				if (SnakePawn->GetSnakeBodyPartsCount() == 0)
 				{
 					// No body, just head. No need to look for tail
-					UE_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("ASnakeBodyPartSpawner - Empty snake body, spawning first element!"));
+					GDTUI_SHORT_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("Empty snake body, spawning first element!"));
 
 					SpawnBodyPart(SnakePawn, SnakePawn->GetMoveDirection());
 				}
@@ -51,7 +51,7 @@ void ASnakeBodyPartSpawner::NotifyActorEndOverlap(AActor* OtherActor)
 				{
 					if(Interface->IsSnakeTail())
 					{
-						UE_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("ASnakeBodyPartSpawner - Snake's tail found, spawn new body part!"));
+						GDTUI_SHORT_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("Snake's tail found, spawn new body part!"));
 						
 						if (ASnakeBodyPart* const CurrentTail = Cast<ASnakeBodyPart>(OtherActor))
 						{
@@ -62,13 +62,13 @@ void ASnakeBodyPartSpawner::NotifyActorEndOverlap(AActor* OtherActor)
 							}
 							else
 							{
-								UE_LOG(SnakeLogCategorySnakeBody, Error, TEXT("Current body tail doesn't have a valid reference to the snake pawn!"));
+								GDTUI_LOG(SnakeLogCategorySnakeBody, Error, TEXT("Current body tail doesn't have a valid reference to the snake pawn!"));
 								ensure(false);
 							}
 						}
 						else
 						{
-							UE_LOG(SnakeLogCategorySnakeBody, Error, TEXT("Unhandle case! Found a snake body type tail not on a snake body part!"));
+							GDTUI_LOG(SnakeLogCategorySnakeBody, Error, TEXT("Unhandle case! Found a snake body type tail not on a snake body part!"));
 							ensure(false);
 						}
 					}
@@ -93,7 +93,10 @@ void ASnakeBodyPartSpawner::BeginPlay()
 	Super::BeginPlay();
 
 	const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
-	NoCollisionBodyPartsCount = GameConstants ? GameConstants->SnakeNoCollisionBodySize : 0;
+	ensure(GameConstants);
+
+	NoCollisionBodyPartsCount = GameConstants ? GameConstants->SnakeNoCollisionBodySize : 3;
+	BodyPartStartingHeight = GameConstants ? GameConstants->BodySpawnHeight : 25.0f;
 }
 
 void ASnakeBodyPartSpawner::SpawnBodyPart(ASnakePawn* InSnakePawn, const FVector& InMoveDirection, const TArray<FChangeDirectionAction>& InChangeDirectionQueue /* = {}*/)
@@ -103,7 +106,9 @@ void ASnakeBodyPartSpawner::SpawnBodyPart(ASnakePawn* InSnakePawn, const FVector
 		UWorld* const World = GetWorld();
 		if (ensure(World))
 		{
-			ASnakeBodyPart* const SnakeBodyPart = World->SpawnActor<ASnakeBodyPart>(SnakeBodyPartClass, GetActorLocation(), FRotator::ZeroRotator);
+			FVector SpawnLocation = GetActorLocation();
+			SpawnLocation.Z = BodyPartStartingHeight;
+			ASnakeBodyPart* const SnakeBodyPart = World->SpawnActor<ASnakeBodyPart>(SnakeBodyPartClass, SpawnLocation, FRotator::ZeroRotator);
 			if (ensure(SnakeBodyPart))
 			{
 				SnakeBodyPart->SetSnakeBodyPartType(ESnakeBodyPartType::kTail);
