@@ -15,7 +15,7 @@
 #include "EnhancedInputComponent.h"
 #include "InputTriggers.h"
 #include "EnhancedInputSubsystems.h"
-#include "Game/SnakePawn.h"
+#include "Game/Snake/SnakePawn.h"
 #include "SnakeGameLocalPlayer.h"
 #include "Data/GameConstants.h"
 #include "Game/GrassTrailManagerActor.h"

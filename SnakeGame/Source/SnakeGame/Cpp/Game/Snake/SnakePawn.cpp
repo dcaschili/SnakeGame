@@ -1,20 +1,14 @@
-#include "Game/SnakePawn.h"
+#include "Game/Snake/SnakePawn.h"
 
 #include "Components/StaticMeshComponent.h"
-#include "InputAction.h"
 #include "EnhancedInputComponent.h"
 #include "SnakeLog.h"
-#include "Kismet/GameplayStatics.h"
-#include "Engine/LocalPlayer.h"
-#include "Game/Map/MapOccupancyComponent.h"
 #include "Game/Map/MapFunctionLibrary.h"
 #include "Game/Components/SnakeBodyPartMoveComponent.h"
-#include "Game/SnakeBodyPart.h"
-#include "Game/SnakeBodyPartSpawner.h"
-#include "Game/CollectiblesSpawner.h"
-#include "SnakeGameGameModeBase.h"
-#include "Game/Components/EndGameOverlapDetectionComponent.h"
+#include "Game/Snake/SnakeBodyPart.h"
+#include "Game/Snake/SnakeBodyPartSpawner.h"
 #include "Audio/SnakeChangeDirectionAudioComponent.h"
+#include "Engine/World.h"
 
 #if !UE_BUILD_SHIPPING
 #include "DrawDebugHelpers.h"
@@ -44,12 +38,6 @@ ASnakePawn::ASnakePawn()
 	StaticMeshComp->CastShadow = false;
 	StaticMeshComp->SetGenerateOverlapEvents(true);
 	
-	EndGameOverlapComponent = CreateDefaultSubobject<UEndGameOverlapDetectionComponent>(TEXT("EndGameOverlapDetectionComponent"));
-	MapOccupancyComponent = CreateDefaultSubobject<UMapOccupancyComponent>(TEXT("MapOccupancyComponent"));
-	if (ensure(MapOccupancyComponent))
-	{
-		MapOccupancyComponent->SetEnableContinuousTileOccupancyTest(true);
-	}
 	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));
 	SnakeChangeDirectionAudioComponent = CreateDefaultSubobject<USnakeChangeDirectionAudioComponent>(TEXT("SnakeChangeDirectionAudioComponent"));
 }
@@ -152,7 +140,7 @@ void ASnakePawn::AddSnakeBodyPart(ASnakeBodyPart* InSnakeBodyPart)
 	if (InSnakeBodyPart)
 	{
 		SnakeBody.Add(InSnakeBodyPart);
-		UE_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("Added new snake body part!"));
+		GDTUI_SHORT_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("Added new snake body part!"));
 	}
 }
 
@@ -193,7 +181,7 @@ void ASnakePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 		}
 		else
 		{
-			UE_LOG(SnakeLogCategoryGame, Warning, TEXT("Missing MoveRightIA!"));
+			GDTUI_LOG(SnakeLogCategoryGame, Warning, TEXT("Missing MoveRightIA!"));
 			ensure(false);
 		}
 		
@@ -203,46 +191,15 @@ void ASnakePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 		}
 		else
 		{
-			UE_LOG(SnakeLogCategoryGame, Warning, TEXT("Missing MoveUpIA!"));
+			GDTUI_LOG(SnakeLogCategoryGame, Warning, TEXT("Missing MoveUpIA!"));
 			ensure(false);
 		}
 	}
 }
 
-void ASnakePawn::BindEvents()
+TOptional<FChangeDirectionAction> ASnakePawn::BuildChangeDirectionAction() const
 {
-	if (ASnakeGameGameModeBase* GameMode = Cast<ASnakeGameGameModeBase>(UGameplayStatics::GetGameMode(this)))
-	{
-		if (ACollectiblesSpawner* const Spawner = GameMode->GetCollectiblesSpawner())
-		{
-			Spawner->OnCollectibleCollected.AddUniqueDynamic(this, &ThisClass::HandleCollectibleCollected);
-		}
-	}
-}
-
-void ASnakePawn::UnbindEvents()
-{
-	if (ASnakeGameGameModeBase* GameMode = Cast<ASnakeGameGameModeBase>(UGameplayStatics::GetGameMode(this)))
-	{
-		if (ACollectiblesSpawner* const Spawner = GameMode->GetCollectiblesSpawner())
-		{
-			Spawner->OnCollectibleCollected.RemoveDynamic(this, &ThisClass::HandleCollectibleCollected);
-		}
-	}
-}
-
-void ASnakePawn::HandleCollectibleCollected(const FVector& InCollectibleLocation)
-{
-	UE_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("ASnakePawn - Spawning body part spawner!"));
-	
-	if (ensure(SnakeBodyPartSpawnerClass))
-	{
-		UWorld* World = GetWorld();
-		if (ensure(World))
-		{
-			World->SpawnActor<ASnakeBodyPartSpawner>(SnakeBodyPartSpawnerClass, InCollectibleLocation, FRotator::ZeroRotator);
-		}
-	}
+	return TOptional<FChangeDirectionAction>();
 }
 
 void ASnakePawn::HandleMoveRightIA(const FInputActionInstance& InputActionInstance)

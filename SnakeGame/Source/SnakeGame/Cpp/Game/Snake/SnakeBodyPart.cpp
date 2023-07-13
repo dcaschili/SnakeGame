@@ -1,7 +1,7 @@
-#include "Game/SnakeBodyPart.h"
+#include "Game/Snake/SnakeBodyPart.h"
 
 #include "Components/StaticMeshComponent.h"
-#include "Game/SnakePawn.h"
+#include "Game/Snake/SnakePawn.h"
 #include "Game/Map/MapFunctionLibrary.h"
 #include "Data/GameConstants.h"
 #include "Game/Components/SnakeBodyPartMoveComponent.h"

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
-#include "Game/SnakeBodyPartType.h"
+#include "Game/Snake/SnakeBodyPartType.h"
 #include "Containers/Queue.h"
 #include "Game/ChangeDirectionAction.h"
 #include "Game/Interfaces/SnakeBodyPartTypeInterface.h"

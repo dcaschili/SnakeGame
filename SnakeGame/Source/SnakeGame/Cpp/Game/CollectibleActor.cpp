@@ -2,7 +2,7 @@
 
 #include "Components/StaticMeshComponent.h"
 #include "Game/Map/MapOccupancyComponent.h"
-#include "Game/SnakePawn.h"
+#include "Game/Snake/SnakePawn.h"
 #include "Audio/CollectibleAudioComponent.h"
 
 ACollectibleActor::ACollectibleActor()

@@ -1,13 +1,13 @@
-#include "Game/SnakeBodyPartSpawner.h"
+#include "Game/Snake/SnakeBodyPartSpawner.h"
 
 #include "Data/GameConstants.h"
 #include "Game/Interfaces/SnakeBodyPartTypeInterface.h"
-#include "Game/SnakePawn.h"
-#include "Game/SnakeBodyPartType.h"
+#include "Game/Snake/SnakePawn.h"
+#include "Game/Snake/SnakeBodyPartType.h"
 #include "SnakeLog.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Components/BoxComponent.h"
-#include "Game/SnakeBodyPart.h"
+#include "Game/Snake/SnakeBodyPart.h"
 
 
 ASnakeBodyPartSpawner::ASnakeBodyPartSpawner()

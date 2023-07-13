@@ -48,7 +48,7 @@ void UMapOccupancyComponent::ForceFreeOccupancy()
 {
 	AMapManager* const MapManager = AMapManager::GetMapManager(this);
 
-	if (ensure(MapManager) && PreviousMapTileLocation.IsSet())
+	if (MapManager && PreviousMapTileLocation.IsSet())
 	{
 		MapManager->ReduceTileOccupancy(PreviousMapTileLocation.GetValue());
 		PreviousMapTileLocation.Reset();
@@ -97,7 +97,7 @@ bool UMapOccupancyComponent::IsOccupancyUpdateNeeded() const
 void UMapOccupancyComponent::UpdateOccupancy()
 {
 	AMapManager* const MapManager = AMapManager::GetMapManager(this);
-	if (ensure(MapManager))
+	if (MapManager)
 	{
 		// Remove occupancy from previous tile
 		ForceFreeOccupancy();

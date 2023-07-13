@@ -1,6 +1,6 @@
 #include "Audio/SnakeChangeDirectionAudioComponent.h"
 
-#include "Game/SnakePawn.h"
+#include "Game/Snake/SnakePawn.h"
 #include "SnakeLog.h"
 
 USnakeChangeDirectionAudioComponent::USnakeChangeDirectionAudioComponent()

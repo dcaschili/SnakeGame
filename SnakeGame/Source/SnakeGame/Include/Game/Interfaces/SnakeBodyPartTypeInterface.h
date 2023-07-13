@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Game/SnakeBodyPartType.h"
+#include "Game/Snake/SnakeBodyPartType.h"
 
 #include "SnakeBodyPartTypeInterface.generated.h"
 

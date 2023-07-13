@@ -1,7 +1,7 @@
 #include "SnakeMatchGameModeBase.h"
 
 #include "SnakeLog.h"
-#include "Game/SnakePawn.h"
+#include "Game/Snake/SnakePawn.h"
 
 #if !UE_BUILD_SHIPPING
 #include "Engine.h"

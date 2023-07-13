@@ -2,15 +2,13 @@
 
 #include "GameFramework/Pawn.h"
 #include "Game/Interfaces/SnakeBodyPartTypeInterface.h"
-#include "ChangeDirectionAction.h"
+#include "Game/ChangeDirectionAction.h"
 
 #include "SnakePawn.generated.h"
 
 class UStaticMeshComponent;
 class UInputAction;
 class UInputComponent;
-class UEndGameCollisionDetectionComponent;
-class UMapOccupancyComponent;
 class USnakeBodyPartMoveComponent;
 class ASnakeBodyPart;
 class ASnakeBodyPartSpawner;
@@ -38,8 +36,6 @@ public:
 
 	FVector GetMoveDirection() const; 
 
-	FORCEINLINE UEndGameOverlapDetectionComponent* GetEndGameOverlapDetectionComponent() const { return EndGameOverlapComponent; }
-
 	FChangeDirectionDelegate OnChangeDirection{};
 
 protected:
@@ -47,26 +43,21 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	virtual void BindEvents();
-	virtual void UnbindEvents();
+	virtual void BindEvents() {}
+	virtual void UnbindEvents() {}
+
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Spawn")
+	TSubclassOf<ASnakeBodyPartSpawner> SnakeBodyPartSpawnerClass{};
 
 private:
-	UFUNCTION()
-	void HandleCollectibleCollected(const FVector& InCollectibleLocation);
+	
 	UFUNCTION()
 	void HandleMoveRightIA(const FInputActionInstance& InputActionInstance);
 	UFUNCTION()
 	void HandleMoveUpIA(const FInputActionInstance& InputActionInstance);
 
-	UPROPERTY(EditDefaultsOnly, Category = "Snake|Spawn")
-	TSubclassOf<ASnakeBodyPartSpawner> SnakeBodyPartSpawnerClass{};
-
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
-	TObjectPtr<UStaticMeshComponent> StaticMeshComp{};
-	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
-	TObjectPtr<UEndGameOverlapDetectionComponent> EndGameOverlapComponent{};
-	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
-	TObjectPtr<UMapOccupancyComponent> MapOccupancyComponent{};
+	TObjectPtr<UStaticMeshComponent> StaticMeshComp{};	
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<USnakeBodyPartMoveComponent> SnakeMovementComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
