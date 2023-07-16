@@ -65,7 +65,13 @@ void ASnakeBodyPart::SetSnakePawn(ASnakePawn* InPawnPtr)
 {
 	if (InPawnPtr)
 	{
+		if (SnakePawnPtr.IsValid())
+		{
+			UnbindPawnDelegates();
+		}
+
 		SnakePawnPtr = InPawnPtr;
+		BindPawnDelegates();
 	}
 }
 
@@ -105,6 +111,27 @@ void ASnakeBodyPart::BeginPlay()
 void ASnakeBodyPart::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
+}
+
+void ASnakeBodyPart::HandleChangeDirectionAction(const FChangeDirectionAction& NewDirectionAction)
+{
+	AddChangeDirAction(NewDirectionAction);
+}
+
+void ASnakeBodyPart::BindPawnDelegates()
+{
+	if (SnakePawnPtr.IsValid())
+	{
+		SnakePawnPtr->OnChangeDirection.AddUniqueDynamic(this, &ThisClass::HandleChangeDirectionAction);
+	}
+}
+
+void ASnakeBodyPart::UnbindPawnDelegates()
+{
+	if (SnakePawnPtr.IsValid())
+	{
+		SnakePawnPtr->OnChangeDirection.RemoveDynamic(this, &ThisClass::HandleChangeDirectionAction);
+	}
 }
 
 

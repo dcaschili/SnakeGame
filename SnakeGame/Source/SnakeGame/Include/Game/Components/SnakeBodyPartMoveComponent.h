@@ -31,6 +31,4 @@ private:
 	TOptional<FVector>			PreviousMoveDirection{};
 	bool						bDirectionChanged = false;
 	FVector						MoveDirection = FVector::RightVector;
-	float						HalfTileSize{};
-	int32						TileSize{};
 }; 

@@ -19,12 +19,6 @@ USnakeBodyPartMoveComponent::USnakeBodyPartMoveComponent()
 void USnakeBodyPartMoveComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
-	check(GameConstants);
-
-	TileSize = GameConstants->TileSize;
-	HalfTileSize = TileSize / 2.0f;
 }
 
 void USnakeBodyPartMoveComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)

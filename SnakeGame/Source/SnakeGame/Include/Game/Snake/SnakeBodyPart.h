@@ -53,6 +53,12 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
+	UFUNCTION()
+	void HandleChangeDirectionAction(const FChangeDirectionAction& NewDirectionAction);
+
+	void BindPawnDelegates();
+	void UnbindPawnDelegates();
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SnakeGame|Body", meta=(AllowPrivateAccess=true))
 	ESnakeBodyPartType BodyPartType {};
 

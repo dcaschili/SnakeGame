@@ -116,14 +116,6 @@ void ASnakePawn::Tick(float DeltaSeconds)
 			ChangeDirectionAction.Direction = MoveDirection;
 			ChangeDirectionAction.Location = CurrentPos;
 
-			for (ASnakeBodyPart* const BodyPart : SnakeBody)
-			{
-				if (ensure(BodyPart))
-				{
-					BodyPart->AddChangeDirAction(ChangeDirectionAction);
-				}
-			}
-
 			OnChangeDirection.Broadcast(ChangeDirectionAction);
 		}
 	}
@@ -195,11 +187,6 @@ void ASnakePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 			ensure(false);
 		}
 	}
-}
-
-TOptional<FChangeDirectionAction> ASnakePawn::BuildChangeDirectionAction() const
-{
-	return TOptional<FChangeDirectionAction>();
 }
 
 void ASnakePawn::HandleMoveRightIA(const FInputActionInstance& InputActionInstance)
