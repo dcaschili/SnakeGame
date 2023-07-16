@@ -14,6 +14,7 @@ class ASnakeBodyPart;
 class ASnakeBodyPartSpawner;
 class UEndGameOverlapDetectionComponent;
 class USnakeChangeDirectionAudioComponent;
+class UMapOccupancyComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeDirectionDelegate, const FChangeDirectionAction&, NewDirectionAction);
 
@@ -36,6 +37,8 @@ public:
 
 	FVector GetMoveDirection() const; 
 
+	FORCEINLINE UEndGameOverlapDetectionComponent* GetEndGameOverlapDetectionComponent() const { return EndGameOverlapComponent; }
+
 	FChangeDirectionDelegate OnChangeDirection{};
 
 protected:
@@ -43,19 +46,24 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	virtual void BindEvents() {}
-	virtual void UnbindEvents() {}
+	virtual void BindEvents();
+	virtual void UnbindEvents();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Spawn")
 	TSubclassOf<ASnakeBodyPartSpawner> SnakeBodyPartSpawnerClass{};
 
 private:
-	
+	UFUNCTION()
+	void HandleCollectibleCollected(const FVector& InCollectibleLocation);
 	UFUNCTION()
 	void HandleMoveRightIA(const FInputActionInstance& InputActionInstance);
 	UFUNCTION()
 	void HandleMoveUpIA(const FInputActionInstance& InputActionInstance);
 
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
+	TObjectPtr<UEndGameOverlapDetectionComponent> EndGameOverlapComponent{};
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
+	TObjectPtr<UMapOccupancyComponent> MapOccupancyComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UStaticMeshComponent> StaticMeshComp{};	
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
