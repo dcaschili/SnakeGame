@@ -1,23 +1,36 @@
 #include "Game/Snake/SnakeBodyPart.h"
 
-#include "Components/StaticMeshComponent.h"
 #include "Game/Snake/SnakePawn.h"
 #include "Game/Map/MapFunctionLibrary.h"
 #include "Data/GameConstants.h"
 #include "Game/Components/SnakeBodyPartMoveComponent.h"
 #include "Game/Map/MapOccupancyComponent.h"
+#include "SnakeLog.h"
+#include "Components/BoxComponent.h"
+
 
 ASnakeBodyPart::ASnakeBodyPart()
 	: Super()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
-	RootComponent = StaticMeshComp;
-	StaticMeshComp->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
-	StaticMeshComp->CastShadow = false;
-	StaticMeshComp->SetGenerateOverlapEvents(true);
+	
+	SnakeBodyPartCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("SnakeBodyPartCollider"));
+	RootComponent = SnakeBodyPartCollider;
+	SnakeBodyPartCollider->SetGenerateOverlapEvents(true);
+	SnakeBodyPartCollider->SetBoxExtent(FVector{ 50.0f, 50.0f, 50.0f });
 
+	SplineMeshComp = CreateDefaultSubobject<USplineMeshComponent>(TEXT("SplineMeshComponent"));
+	SplineMeshComp->SetupAttachment(RootComponent);
+	SplineMeshComp->SetForwardAxis(SplineMeshAxis.GetValue());
+	SplineMeshComp->CastShadow = false;
+	SplineMeshComp->SetGenerateOverlapEvents(false);
+	SplineMeshComp->SetMobility(EComponentMobility::Movable);
+	if (SplineStaticMesh)
+	{
+		SplineMeshComp->SetStaticMesh(SplineStaticMesh);
+	}
+	
 	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));
 
 	MapOccupancyComponent = CreateDefaultSubobject<UMapOccupancyComponent>(TEXT("MapOccupancyComponent"));
@@ -25,13 +38,16 @@ ASnakeBodyPart::ASnakeBodyPart()
 	{
 		MapOccupancyComponent->SetEnableContinuousTileOccupancyTest(true);
 	}
+
 }
 
 void ASnakeBodyPart::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	if (!SnakePawnPtr.IsValid()) return;
+	UpdateSplineMeshComponent();
+
+	if (!SnakePawnPtr) return;
 
 	if (!SnakeMovementComponent) return;
 
@@ -53,6 +69,22 @@ void ASnakeBodyPart::Tick(float DeltaSeconds)
 	}
 }
 
+#if WITH_EDITOR
+void ASnakeBodyPart::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	const FName PropertyName = (PropertyChangedEvent.Property != nullptr) ? PropertyChangedEvent.Property->GetFName() : NAME_None;
+	if (PropertyName.IsEqual(GET_MEMBER_NAME_CHECKED(ASnakeBodyPart, SplineStaticMesh)))
+	{
+		if (SplineStaticMesh && SplineMeshComp)
+		{
+			SplineMeshComp->SetStaticMesh(SplineStaticMesh);
+		}
+	}
+
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+#endif
+
 void ASnakeBodyPart::SetMoveDir(const FVector& InMoveDirection)
 {
 	if (ensure(SnakeMovementComponent))
@@ -65,7 +97,7 @@ void ASnakeBodyPart::SetSnakePawn(ASnakePawn* InPawnPtr)
 {
 	if (InPawnPtr)
 	{
-		if (SnakePawnPtr.IsValid())
+		if (SnakePawnPtr)
 		{
 			UnbindPawnDelegates();
 		}
@@ -77,11 +109,7 @@ void ASnakeBodyPart::SetSnakePawn(ASnakePawn* InPawnPtr)
 
 ASnakePawn* ASnakeBodyPart::GetSnakePawn() const
 {
-	if (ensure(SnakePawnPtr.IsValid()))
-	{
-		return SnakePawnPtr.Get();
-	}
-	return nullptr;
+	return SnakePawnPtr;
 }
 
 void ASnakeBodyPart::AddChangeDirAction(const FChangeDirectionAction& InChangeDirAction)
@@ -96,6 +124,20 @@ FVector ASnakeBodyPart::GetMoveDirection() const
 		return SnakeMovementComponent->GetMoveDirection();
 	}
 	return FVector::RightVector;
+}
+
+void ASnakeBodyPart::SetSnakeBodyPartIndex(int32 InBodyPartIndex)
+{
+	if (InBodyPartIndex >= 0)
+	{
+		GDTUI_SHORT_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("Setup body part index: %d"), InBodyPartIndex);
+		BodyPartIndex = InBodyPartIndex;
+	}
+	else
+	{
+		GDTUI_LOG(SnakeLogCategorySnakeBody, Warning, TEXT("Trying to setup a negative body part index!"));
+		ensure(false);
+	}
 }
 
 void ASnakeBodyPart::BeginPlay()
@@ -120,7 +162,7 @@ void ASnakeBodyPart::HandleChangeDirectionAction(const FChangeDirectionAction& N
 
 void ASnakeBodyPart::BindPawnDelegates()
 {
-	if (SnakePawnPtr.IsValid())
+	if (SnakePawnPtr)
 	{
 		SnakePawnPtr->OnChangeDirection.AddUniqueDynamic(this, &ThisClass::HandleChangeDirectionAction);
 	}
@@ -128,10 +170,70 @@ void ASnakeBodyPart::BindPawnDelegates()
 
 void ASnakeBodyPart::UnbindPawnDelegates()
 {
-	if (SnakePawnPtr.IsValid())
+	if (SnakePawnPtr)
 	{
 		SnakePawnPtr->OnChangeDirection.RemoveDynamic(this, &ThisClass::HandleChangeDirectionAction);
 	}
 }
 
+void ASnakeBodyPart::UpdateSplineMeshComponent()
+{
+	if (!BodyPartIndex.IsSet())
+	{
+		ensure(false);
+		return;
+	}
+	
+	if (!SnakePawnPtr)
+	{
+		ensure(false);
+		return;
+	}
 
+	if (!SplineMeshComp)
+	{
+		ensure(false);
+		return;
+	}
+
+	const FVector CurrentPos = GetTransform().InverseTransformPosition(GetActorLocation());
+	const FVector CurrentMovDir = GetMoveDirection();
+
+	FVector FrontPosition{};
+	FVector FrontMoveDir{};
+	if (BodyPartIndex.GetValue() == 0)
+	{
+		// Take head position
+		FrontPosition = SnakePawnPtr->GetActorLocation();
+		FrontMoveDir = SnakePawnPtr->GetMoveDirection();
+	}
+	else if(BodyPartIndex.GetValue() > 0)
+	{
+		const int32 FrontBodyPartIndex = BodyPartIndex.GetValue() - 1;
+		if (const ASnakeBodyPart* const FrontBodyPart = SnakePawnPtr->GetSnakeBodyPartAtIndex(FrontBodyPartIndex))
+		{
+			FrontPosition = FrontBodyPart->GetActorLocation();
+			FrontMoveDir = FrontBodyPart->GetMoveDirection();
+		}
+		else
+		{
+			GDTUI_LOG(SnakeLogCategorySnakeBody, Warning, TEXT("Can't find front body part at index: %d"), BodyPartIndex.GetValue());
+			ensure(false);
+			return;
+		}
+	}
+	else
+	{
+		GDTUI_LOG(SnakeLogCategorySnakeBody, Error, TEXT("Negative snake body part index"));
+		ensure(false);
+		return;
+	}
+		
+	FrontPosition = GetTransform().InverseTransformPosition(FrontPosition);
+	SplineMeshComp->SetStartAndEnd(CurrentPos, CurrentMovDir, FrontPosition, FrontMoveDir);
+}
+
+void ASnakeBodyPart::SetSnakeBodyPartType(ESnakeBodyPartType InBodyPartType)
+{
+	BodyPartType = InBodyPartType;
+}

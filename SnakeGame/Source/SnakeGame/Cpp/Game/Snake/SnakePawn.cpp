@@ -138,11 +138,21 @@ void ASnakePawn::Tick(float DeltaSeconds)
 	}
 }
 
+const ASnakeBodyPart* ASnakePawn::GetSnakeBodyPartAtIndex(int32 InBodyPartIndex) const
+{
+	if (SnakeBody.IsValidIndex(InBodyPartIndex))
+	{
+		return SnakeBody[InBodyPartIndex];
+	}
+	return nullptr;
+}
+
 void ASnakePawn::AddSnakeBodyPart(ASnakeBodyPart* InSnakeBodyPart)
 {
 	if (InSnakeBodyPart)
 	{
 		SnakeBody.Add(InSnakeBodyPart);
+		InSnakeBodyPart->SetSnakeBodyPartIndex(SnakeBody.Num() - 1);
 		GDTUI_SHORT_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("Added new snake body part!"));
 	}
 }

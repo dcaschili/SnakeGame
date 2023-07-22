@@ -32,6 +32,7 @@ public:
 	virtual void				SetSnakeBodyPartType(ESnakeBodyPartType InBodyPartType) override { BodyPartType = BodyPartType; }
 	virtual ESnakeBodyPartType	GetSnakeBodyPartType() const override { return BodyPartType; };
 
+	const ASnakeBodyPart* GetSnakeBodyPartAtIndex(int32 InBodyPartIndex) const;
 	int32 GetSnakeBodyPartsCount() const { return SnakeBody.Num(); }
 	void AddSnakeBodyPart(ASnakeBodyPart* InSnakeBodyPart);
 
