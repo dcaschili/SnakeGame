@@ -14,6 +14,7 @@
 #include "Game/CollectiblesSpawner.h"
 #include "SnakeGameGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/SplineComponent.h"
 
 #if !UE_BUILD_SHIPPING
 #include "DrawDebugHelpers.h"
@@ -28,6 +29,8 @@ static TAutoConsoleVariable<bool> CVarSnakePositionDebug(
 	TEXT("false: disable debugger.\n"),
 	ECVF_Cheat);
 #endif // !UE_BUILD_SHIPPING
+
+static ESplineCoordinateSpace::Type CoordSpace = ESplineCoordinateSpace::World;
 
 ASnakePawn::ASnakePawn()
 {
@@ -50,6 +53,13 @@ ASnakePawn::ASnakePawn()
 	if (ensure(MapOccupancyComponent))
 	{
 		MapOccupancyComponent->SetEnableContinuousTileOccupancyTest(true);
+	}
+
+	SnakeBodySplineComponent = CreateDefaultSubobject<USplineComponent>(TEXT("SnakeBodySplineComponent"));
+	if (ensure(SnakeBodySplineComponent))
+	{
+		//SnakeBodySplineComponent->SetupAttachment(RootComponent);
+		SnakeBodySplineComponent->ClearSplinePoints(false);
 	}
 }
 
@@ -75,6 +85,11 @@ void ASnakePawn::PossessedBy(AController* NewController)
 			}
 		}
 	}
+
+	SnakeBodySplineComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
+
+	GDTUI_SHORT_LOG(SnakeLogCategorySnakeBody, Log, TEXT("Added snake head spline point!"));
+	AddSplinePointAtLocation(GetActorLocation());
 }
 
 void ASnakePawn::Tick(float DeltaSeconds)
@@ -136,6 +151,11 @@ void ASnakePawn::Tick(float DeltaSeconds)
 		GDTUI_SHORT_LOG(SnakeLogCategorySnakeBody, VeryVerbose, TEXT("Enable change direction!"));
 		bChangeDirectionEnabled = true;
 	}
+
+	if (SnakeBodySplineComponent)
+	{
+		UpdateSplinePoints();
+	}
 }
 
 const ASnakeBodyPart* ASnakePawn::GetSnakeBodyPartAtIndex(int32 InBodyPartIndex) const
@@ -154,6 +174,8 @@ void ASnakePawn::AddSnakeBodyPart(ASnakeBodyPart* InSnakeBodyPart)
 		SnakeBody.Add(InSnakeBodyPart);
 		InSnakeBodyPart->SetSnakeBodyPartIndex(SnakeBody.Num() - 1);
 		GDTUI_SHORT_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("Added new snake body part!"));
+		
+		AddSplinePointAtLocation(InSnakeBodyPart->GetActorLocation());
 	}
 }
 
@@ -165,6 +187,64 @@ FVector ASnakePawn::GetMoveDirection() const
 	}
 	return FVector::RightVector;
 }
+
+//TOptional<FVector> ASnakePawn::GetBodyPartSplinePointPosition(int32 InBodyPartIndex) const
+//{
+//	TOptional<FVector> Pos{};
+//
+//	if (!SnakeBodySplineComponent)
+//	{
+//		GDTUI_LOG(SnakeLogCategorySnakeBody, Error, TEXT("Missing spline component!"));
+//		ensure(false);
+//		return Pos;
+//	}
+//
+//	if (SnakeBody.IsValidIndex(InBodyPartIndex))
+//	{
+//		const int32 BodyPartSplineIndex = InBodyPartIndex++;
+//		const int32 SplinePointsCount = SnakeBodySplineComponent->GetNumberOfSplinePoints();
+//		if (BodyPartSplineIndex >= 0 && BodyPartSplineIndex < SplinePointsCount)
+//		{
+//			Pos = SnakeBodySplineComponent->GetLocationAtSplinePoint(BodyPartSplineIndex, ESplineCoordinateSpace::World);			
+//		}
+//	}
+//	else
+//	{
+//		GDTUI_LOG(SnakeLogCategorySnakeBody, Warning, TEXT("Index %d isn't a valid body part index!"), InBodyPartIndex);
+//		ensure(false);
+//	}
+//
+//	return Pos;
+//}
+//
+//TOptional<FVector> ASnakePawn::GetBodyPartSplinePointTangent(int32 InBodyPartIndex) const
+//{
+//	TOptional<FVector> Tan{};
+//
+//	if (!SnakeBodySplineComponent)
+//	{
+//		GDTUI_LOG(SnakeLogCategorySnakeBody, Error, TEXT("Missing spline component!"));
+//		ensure(false);
+//		return Tan;
+//	}
+//
+//	if (SnakeBody.IsValidIndex(InBodyPartIndex))
+//	{
+//		const int32 BodyPartSplineIndex = InBodyPartIndex++;
+//		const int32 SplinePointsCount = SnakeBodySplineComponent->GetNumberOfSplinePoints();
+//		if (BodyPartSplineIndex >= 0 && BodyPartSplineIndex < SplinePointsCount)
+//		{
+//			Tan = SnakeBodySplineComponent->GetTangentAtSplinePoint(BodyPartSplineIndex, ESplineCoordinateSpace::World);
+//		}
+//	}
+//	else
+//	{
+//		GDTUI_LOG(SnakeLogCategorySnakeBody, Warning, TEXT("Index %d isn't a valid body part index!"), InBodyPartIndex);
+//		ensure(false);
+//	}
+//
+//	return Tan;
+//}
 
 void ASnakePawn::BeginPlay()
 {
@@ -270,6 +350,66 @@ void ASnakePawn::HandleMoveUpIA(const FInputActionInstance& InputActionInstance)
 			const float Amount = InputActionInstance.GetValue().Get<float>();
 			PendingMoveDirection = FVector(Amount, 0.0f, 0.0f);
 		}
+	}
+}
+
+void ASnakePawn::UpdateSplinePoints()
+{
+	check(SnakeBodySplineComponent);
+	
+	const int32 SplinePointsCount = SnakeBodySplineComponent->GetNumberOfSplinePoints();
+	for (int32 i = 0; i < SplinePointsCount; ++i)
+	{
+		if (i == 0)
+		{
+			// Update head
+			UpdateSplinePointLocation(i, GetActorLocation());
+		}
+		else
+		{
+			const int32 BodyPartIndex = i - 1;
+			if (SnakeBody.IsValidIndex(BodyPartIndex))
+			{
+				if (const ASnakeBodyPart* const BodyPart = SnakeBody[BodyPartIndex])
+				{
+					UpdateSplinePointLocation(i, BodyPart->GetActorLocation());
+				}
+			}
+			else
+			{
+				GDTUI_LOG(SnakeLogCategorySnakeBody, Error, TEXT("Misalignment between spline points and snake body parts array!"));
+				ensure(false);
+				return;
+			}
+		}
+	}
+}
+
+void ASnakePawn::UpdateSplinePointLocation(int32 Index, const FVector& InLocation)
+{
+	check(SnakeBodySplineComponent);
+	if (Index < 0)
+	{
+		GDTUI_LOG(SnakeLogCategorySnakeBody, Warning, TEXT("Requested negative spline point index to update!"));
+		ensure(false);
+	}
+	else
+	{
+		SnakeBodySplineComponent->SetLocationAtSplinePoint(Index, InLocation, CoordSpace);
+	}
+}
+
+void ASnakePawn::AddSplinePointAtLocation(const FVector& InPosition)
+{
+	if (SnakeBodySplineComponent)
+	{
+		GDTUI_SHORT_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("Added spline point at position: %s"), *InPosition.ToString());
+		SnakeBodySplineComponent->AddSplinePoint(InPosition, CoordSpace);
+	}
+	else
+	{
+		GDTUI_LOG(SnakeLogCategorySnakeBody, Error, TEXT("Missing Snake body spline component! Can't add spline point!"));
+		ensure(false);		
 	}
 }
 

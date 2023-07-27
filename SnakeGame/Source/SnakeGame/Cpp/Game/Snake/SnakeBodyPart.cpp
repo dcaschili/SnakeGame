@@ -7,6 +7,7 @@
 #include "Game/Map/MapOccupancyComponent.h"
 #include "SnakeLog.h"
 #include "Components/BoxComponent.h"
+#include "Components/SplineComponent.h"
 
 
 ASnakeBodyPart::ASnakeBodyPart()
@@ -31,7 +32,7 @@ ASnakeBodyPart::ASnakeBodyPart()
 		SplineMeshComp->SetStaticMesh(SplineStaticMesh);
 	}
 	
-	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));
+	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));	
 
 	MapOccupancyComponent = CreateDefaultSubobject<UMapOccupancyComponent>(TEXT("MapOccupancyComponent"));
 	if (ensure(MapOccupancyComponent))
@@ -44,8 +45,6 @@ ASnakeBodyPart::ASnakeBodyPart()
 void ASnakeBodyPart::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	UpdateSplineMeshComponent();
 
 	if (!SnakePawnPtr) return;
 
@@ -67,6 +66,8 @@ void ASnakeBodyPart::Tick(float DeltaSeconds)
 			}
 		}
 	}
+
+	UpdateSplineMeshComponent();
 }
 
 #if WITH_EDITOR
@@ -196,41 +197,20 @@ void ASnakeBodyPart::UpdateSplineMeshComponent()
 		return;
 	}
 
-	const FVector CurrentPos = GetTransform().InverseTransformPosition(GetActorLocation());
-	const FVector CurrentMovDir = GetMoveDirection();
-
-	FVector FrontPosition{};
-	FVector FrontMoveDir{};
-	if (BodyPartIndex.GetValue() == 0)
+	const USplineComponent* const SplineComp = SnakePawnPtr->GetSplineComponent();
+	if (SplineComp)
 	{
-		// Take head position
-		FrontPosition = SnakePawnPtr->GetActorLocation();
-		FrontMoveDir = SnakePawnPtr->GetMoveDirection();
-	}
-	else if(BodyPartIndex.GetValue() > 0)
-	{
-		const int32 FrontBodyPartIndex = BodyPartIndex.GetValue() - 1;
-		if (const ASnakeBodyPart* const FrontBodyPart = SnakePawnPtr->GetSnakeBodyPartAtIndex(FrontBodyPartIndex))
-		{
-			FrontPosition = FrontBodyPart->GetActorLocation();
-			FrontMoveDir = FrontBodyPart->GetMoveDirection();
-		}
-		else
-		{
-			GDTUI_LOG(SnakeLogCategorySnakeBody, Warning, TEXT("Can't find front body part at index: %d"), BodyPartIndex.GetValue());
-			ensure(false);
-			return;
-		}
+		const FVector CurrentPos = SplineComp->GetLocationAtSplinePoint(BodyPartIndex.GetValue() + 1, ESplineCoordinateSpace::World);
+		const FVector FrontPos = SplineComp->GetLocationAtSplinePoint(BodyPartIndex.GetValue(), ESplineCoordinateSpace::World);
+		const FVector CurrentTan = SplineComp->GetTangentAtSplinePoint(BodyPartIndex.GetValue() + 1, ESplineCoordinateSpace::World);
+		const FVector FrontTan = SplineComp->GetTangentAtSplinePoint(BodyPartIndex.GetValue(), ESplineCoordinateSpace::World);
+		
+		SplineMeshComp->SetStartAndEnd(CurrentPos, CurrentTan, FrontPos, FrontTan);
 	}
 	else
 	{
-		GDTUI_LOG(SnakeLogCategorySnakeBody, Error, TEXT("Negative snake body part index"));
-		ensure(false);
-		return;
+		GDTUI_LOG(SnakeLogCategorySnakeBody, Warning, TEXT("Can't find spline comp in snake pawn. Can't update spline mesh component!"));
 	}
-		
-	FrontPosition = GetTransform().InverseTransformPosition(FrontPosition);
-	SplineMeshComp->SetStartAndEnd(CurrentPos, CurrentMovDir, FrontPosition, FrontMoveDir);
 }
 
 void ASnakeBodyPart::SetSnakeBodyPartType(ESnakeBodyPartType InBodyPartType)

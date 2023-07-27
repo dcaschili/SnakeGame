@@ -21,7 +21,7 @@ protected:
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|GrassTrail")
-	TObjectPtr<class UTextureRenderTarget2D> TextureTarget{};
+	TObjectPtr<UTextureRenderTarget2D> TextureTarget{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|GrassTrail")
 	TObjectPtr<USceneCaptureComponent2D> SceneCaptureComponent2D{};
 };

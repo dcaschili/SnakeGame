@@ -15,6 +15,7 @@ class ASnakeBodyPartSpawner;
 class UEndGameOverlapDetectionComponent;
 class USnakeChangeDirectionAudioComponent;
 class UMapOccupancyComponent;
+class USplineComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeDirectionDelegate, const FChangeDirectionAction&, NewDirectionAction);
 
@@ -40,6 +41,10 @@ public:
 
 	FORCEINLINE UEndGameOverlapDetectionComponent* GetEndGameOverlapDetectionComponent() const { return EndGameOverlapComponent; }
 
+	/*TOptional<FVector> GetBodyPartSplinePointPosition(int32 InBodyPartIndex) const;
+	TOptional<FVector> GetBodyPartSplinePointTangent(int32 InBodyPartIndex) const;*/
+	const USplineComponent* GetSplineComponent() const { return SnakeBodySplineComponent; }
+
 	FChangeDirectionDelegate OnChangeDirection{};
 
 protected:
@@ -61,6 +66,10 @@ private:
 	UFUNCTION()
 	void HandleMoveUpIA(const FInputActionInstance& InputActionInstance);
 
+	void UpdateSplinePoints();
+	void UpdateSplinePointLocation(int32 Index, const FVector& InLocation);
+	void AddSplinePointAtLocation(const FVector& InPosition);
+
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UEndGameOverlapDetectionComponent> EndGameOverlapComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
@@ -71,6 +80,8 @@ private:
 	TObjectPtr<USnakeBodyPartMoveComponent> SnakeMovementComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<USnakeChangeDirectionAudioComponent> SnakeChangeDirectionAudioComponent{};
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
+	TObjectPtr<USplineComponent> SnakeBodySplineComponent{};
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Inputs")
 	TObjectPtr<UInputAction> MoveRightIA{};
