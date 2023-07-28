@@ -16,6 +16,7 @@ class UEndGameOverlapDetectionComponent;
 class USnakeChangeDirectionAudioComponent;
 class UMapOccupancyComponent;
 class USplineComponent;
+class ASnakeBodySplineManager;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeDirectionDelegate, const FChangeDirectionAction&, NewDirectionAction);
 
@@ -33,7 +34,7 @@ public:
 	virtual void				SetSnakeBodyPartType(ESnakeBodyPartType InBodyPartType) override { BodyPartType = BodyPartType; }
 	virtual ESnakeBodyPartType	GetSnakeBodyPartType() const override { return BodyPartType; };
 
-	const ASnakeBodyPart* GetSnakeBodyPartAtIndex(int32 InBodyPartIndex) const;
+	const ASnakeBodyPart*	GetSnakeBodyPartAtIndex(int32 InBodyPartIndex) const;	
 	int32 GetSnakeBodyPartsCount() const { return SnakeBody.Num(); }
 	void AddSnakeBodyPart(ASnakeBodyPart* InSnakeBodyPart);
 
@@ -41,9 +42,7 @@ public:
 
 	FORCEINLINE UEndGameOverlapDetectionComponent* GetEndGameOverlapDetectionComponent() const { return EndGameOverlapComponent; }
 
-	/*TOptional<FVector> GetBodyPartSplinePointPosition(int32 InBodyPartIndex) const;
-	TOptional<FVector> GetBodyPartSplinePointTangent(int32 InBodyPartIndex) const;*/
-	const USplineComponent* GetSplineComponent() const { return SnakeBodySplineComponent; }
+	const USplineComponent* GetSplineComponent() const;
 
 	FChangeDirectionDelegate OnChangeDirection{};
 
@@ -66,10 +65,6 @@ private:
 	UFUNCTION()
 	void HandleMoveUpIA(const FInputActionInstance& InputActionInstance);
 
-	void UpdateSplinePoints();
-	void UpdateSplinePointLocation(int32 Index, const FVector& InLocation);
-	void AddSplinePointAtLocation(const FVector& InPosition);
-
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UEndGameOverlapDetectionComponent> EndGameOverlapComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
@@ -80,8 +75,10 @@ private:
 	TObjectPtr<USnakeBodyPartMoveComponent> SnakeMovementComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<USnakeChangeDirectionAudioComponent> SnakeChangeDirectionAudioComponent{};
-	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
-	TObjectPtr<USplineComponent> SnakeBodySplineComponent{};
+
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body")
+	TSubclassOf<ASnakeBodySplineManager> SnakeBodySplineManagerClass{};
+	
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Inputs")
 	TObjectPtr<UInputAction> MoveRightIA{};
@@ -97,6 +94,8 @@ private:
 
 	UPROPERTY()
 	TArray<ASnakeBodyPart*> SnakeBody{};
+	UPROPERTY()
+	TObjectPtr<ASnakeBodySplineManager> SnakeBodySplineManager{};
 
 	
 	FVector				MoveDirection = FVector::RightVector;

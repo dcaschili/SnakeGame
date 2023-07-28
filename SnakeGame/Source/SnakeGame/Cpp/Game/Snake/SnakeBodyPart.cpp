@@ -21,7 +21,7 @@ ASnakeBodyPart::ASnakeBodyPart()
 	SnakeBodyPartCollider->SetGenerateOverlapEvents(true);
 	SnakeBodyPartCollider->SetBoxExtent(FVector{ 50.0f, 50.0f, 50.0f });
 
-	SplineMeshComp = CreateDefaultSubobject<USplineMeshComponent>(TEXT("SplineMeshComponent"));
+	/*SplineMeshComp = CreateDefaultSubobject<USplineMeshComponent>(TEXT("SplineMeshComponent"));
 	SplineMeshComp->SetupAttachment(RootComponent);
 	SplineMeshComp->SetForwardAxis(SplineMeshAxis.GetValue());
 	SplineMeshComp->CastShadow = false;
@@ -30,7 +30,7 @@ ASnakeBodyPart::ASnakeBodyPart()
 	if (SplineStaticMesh)
 	{
 		SplineMeshComp->SetStaticMesh(SplineStaticMesh);
-	}
+	}*/
 	
 	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));	
 
@@ -67,7 +67,7 @@ void ASnakeBodyPart::Tick(float DeltaSeconds)
 		}
 	}
 
-	UpdateSplineMeshComponent();
+	// UpdateSplineMeshComponent();
 }
 
 #if WITH_EDITOR
@@ -200,12 +200,41 @@ void ASnakeBodyPart::UpdateSplineMeshComponent()
 	const USplineComponent* const SplineComp = SnakePawnPtr->GetSplineComponent();
 	if (SplineComp)
 	{
-		const FVector CurrentPos = SplineComp->GetLocationAtSplinePoint(BodyPartIndex.GetValue() + 1, ESplineCoordinateSpace::World);
-		const FVector FrontPos = SplineComp->GetLocationAtSplinePoint(BodyPartIndex.GetValue(), ESplineCoordinateSpace::World);
-		const FVector CurrentTan = SplineComp->GetTangentAtSplinePoint(BodyPartIndex.GetValue() + 1, ESplineCoordinateSpace::World);
-		const FVector FrontTan = SplineComp->GetTangentAtSplinePoint(BodyPartIndex.GetValue(), ESplineCoordinateSpace::World);
+		const FTransform& BodyPartTransform = GetTransform();
 		
-		SplineMeshComp->SetStartAndEnd(CurrentPos, CurrentTan, FrontPos, FrontTan);
+
+		/*const FVector CurrentPosL = BodyPartTransform.InverseTransformPosition(SplineComp->GetLocationAtSplinePoint(BodyPartIndex.GetValue() + 1, ESplineCoordinateSpace::World));
+		const FVector FrontPosL = BodyPartTransform.InverseTransformPosition(SplineComp->GetLocationAtSplinePoint(BodyPartIndex.GetValue(), ESplineCoordinateSpace::World));*/
+
+		const FVector CurrentPosL = FVector::ZeroVector;
+		FVector FrontPosL = FVector::ZeroVector;
+		if (BodyPartIndex.GetValue() == 0)
+		{
+			check(SnakePawnPtr);
+			FrontPosL = BodyPartTransform.InverseTransformPosition(SnakePawnPtr->GetActorLocation());
+		}
+		else
+		{
+			check(SnakePawnPtr);
+			const ASnakeBodyPart* const SnakeBodyPart = SnakePawnPtr->GetSnakeBodyPartAtIndex(BodyPartIndex.GetValue() - 1);
+			FrontPosL = BodyPartTransform.InverseTransformPosition(SnakeBodyPart->GetActorLocation());
+		}
+
+		
+		const FVector CurrentTanL = BodyPartTransform.InverseTransformVector(SplineComp->GetTangentAtSplinePoint(BodyPartIndex.GetValue() + 1, ESplineCoordinateSpace::World));
+		const FVector FrontTanL = BodyPartTransform.InverseTransformVector(SplineComp->GetTangentAtSplinePoint(BodyPartIndex.GetValue(), ESplineCoordinateSpace::World));
+		
+
+		/*
+			The spline has the concept of direction. The tangets represent the velocity at a spline point
+			and therefore they have an orientation that we must keep in mind. 
+			As I build the points from the head to the body, the direction should be that. For that
+			reason I need to set the start point as the front spline point and the end as the position of the current
+			body part.
+			I don't have a body part that starts from the head, therefore I need that ordering.
+			If i want to do the opposite, I would need to negate the tangents.
+		*/
+		SplineMeshComp->SetStartAndEnd(FrontPosL, FrontTanL, CurrentPosL, CurrentTanL);
 	}
 	else
 	{
