@@ -42,8 +42,6 @@ public:
 
 	FORCEINLINE UEndGameOverlapDetectionComponent* GetEndGameOverlapDetectionComponent() const { return EndGameOverlapComponent; }
 
-	const USplineComponent* GetSplineComponent() const;
-
 	FChangeDirectionDelegate OnChangeDirection{};
 
 protected:

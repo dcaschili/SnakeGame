@@ -24,8 +24,6 @@ public:
 
 	void SetSnakePawn(ASnakePawn* InSnakePawn);
 
-	const USplineComponent* GetSplineComponent() const { return SnakeBodySplineComponent; }
-
 private:
 	void ClearSplinePoints();
 	void AddSplinePointWorldSpace(const FVector& InLocationW);

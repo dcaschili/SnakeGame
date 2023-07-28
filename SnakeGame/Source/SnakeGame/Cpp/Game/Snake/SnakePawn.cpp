@@ -188,7 +188,6 @@ void ASnakePawn::AddSnakeBodyPart(ASnakeBodyPart* InSnakeBodyPart)
 	if (InSnakeBodyPart)
 	{
 		SnakeBody.Add(InSnakeBodyPart);
-		InSnakeBodyPart->SetSnakeBodyPartIndex(SnakeBody.Num() - 1);
 		GDTUI_SHORT_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("Added new snake body part!"));
 	}
 }
@@ -201,69 +200,6 @@ FVector ASnakePawn::GetMoveDirection() const
 	}
 	return FVector::RightVector;
 }
-
-const USplineComponent* ASnakePawn::GetSplineComponent() const
-{	
-	return SnakeBodySplineManager ? SnakeBodySplineManager->GetSplineComponent() : nullptr;
-}
-
-//TOptional<FVector> ASnakePawn::GetBodyPartSplinePointPosition(int32 InBodyPartIndex) const
-//{
-//	TOptional<FVector> Pos{};
-//
-//	if (!SnakeBodySplineComponent)
-//	{
-//		GDTUI_LOG(SnakeLogCategorySnakeBody, Error, TEXT("Missing spline component!"));
-//		ensure(false);
-//		return Pos;
-//	}
-//
-//	if (SnakeBody.IsValidIndex(InBodyPartIndex))
-//	{
-//		const int32 BodyPartSplineIndex = InBodyPartIndex++;
-//		const int32 SplinePointsCount = SnakeBodySplineComponent->GetNumberOfSplinePoints();
-//		if (BodyPartSplineIndex >= 0 && BodyPartSplineIndex < SplinePointsCount)
-//		{
-//			Pos = SnakeBodySplineComponent->GetLocationAtSplinePoint(BodyPartSplineIndex, ESplineCoordinateSpace::World);			
-//		}
-//	}
-//	else
-//	{
-//		GDTUI_LOG(SnakeLogCategorySnakeBody, Warning, TEXT("Index %d isn't a valid body part index!"), InBodyPartIndex);
-//		ensure(false);
-//	}
-//
-//	return Pos;
-//}
-//
-//TOptional<FVector> ASnakePawn::GetBodyPartSplinePointTangent(int32 InBodyPartIndex) const
-//{
-//	TOptional<FVector> Tan{};
-//
-//	if (!SnakeBodySplineComponent)
-//	{
-//		GDTUI_LOG(SnakeLogCategorySnakeBody, Error, TEXT("Missing spline component!"));
-//		ensure(false);
-//		return Tan;
-//	}
-//
-//	if (SnakeBody.IsValidIndex(InBodyPartIndex))
-//	{
-//		const int32 BodyPartSplineIndex = InBodyPartIndex++;
-//		const int32 SplinePointsCount = SnakeBodySplineComponent->GetNumberOfSplinePoints();
-//		if (BodyPartSplineIndex >= 0 && BodyPartSplineIndex < SplinePointsCount)
-//		{
-//			Tan = SnakeBodySplineComponent->GetTangentAtSplinePoint(BodyPartSplineIndex, ESplineCoordinateSpace::World);
-//		}
-//	}
-//	else
-//	{
-//		GDTUI_LOG(SnakeLogCategorySnakeBody, Warning, TEXT("Index %d isn't a valid body part index!"), InBodyPartIndex);
-//		ensure(false);
-//	}
-//
-//	return Tan;
-//}
 
 void ASnakePawn::BeginPlay()
 {

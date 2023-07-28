@@ -66,25 +66,7 @@ void ASnakeBodyPart::Tick(float DeltaSeconds)
 			}
 		}
 	}
-
-	// UpdateSplineMeshComponent();
 }
-
-#if WITH_EDITOR
-void ASnakeBodyPart::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	const FName PropertyName = (PropertyChangedEvent.Property != nullptr) ? PropertyChangedEvent.Property->GetFName() : NAME_None;
-	if (PropertyName.IsEqual(GET_MEMBER_NAME_CHECKED(ASnakeBodyPart, SplineStaticMesh)))
-	{
-		if (SplineStaticMesh && SplineMeshComp)
-		{
-			SplineMeshComp->SetStaticMesh(SplineStaticMesh);
-		}
-	}
-
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
 
 void ASnakeBodyPart::SetMoveDir(const FVector& InMoveDirection)
 {
@@ -127,20 +109,6 @@ FVector ASnakeBodyPart::GetMoveDirection() const
 	return FVector::RightVector;
 }
 
-void ASnakeBodyPart::SetSnakeBodyPartIndex(int32 InBodyPartIndex)
-{
-	if (InBodyPartIndex >= 0)
-	{
-		GDTUI_SHORT_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("Setup body part index: %d"), InBodyPartIndex);
-		BodyPartIndex = InBodyPartIndex;
-	}
-	else
-	{
-		GDTUI_LOG(SnakeLogCategorySnakeBody, Warning, TEXT("Trying to setup a negative body part index!"));
-		ensure(false);
-	}
-}
-
 void ASnakeBodyPart::BeginPlay()
 {
 	Super::BeginPlay();
@@ -174,71 +142,6 @@ void ASnakeBodyPart::UnbindPawnDelegates()
 	if (SnakePawnPtr)
 	{
 		SnakePawnPtr->OnChangeDirection.RemoveDynamic(this, &ThisClass::HandleChangeDirectionAction);
-	}
-}
-
-void ASnakeBodyPart::UpdateSplineMeshComponent()
-{
-	if (!BodyPartIndex.IsSet())
-	{
-		ensure(false);
-		return;
-	}
-	
-	if (!SnakePawnPtr)
-	{
-		ensure(false);
-		return;
-	}
-
-	if (!SplineMeshComp)
-	{
-		ensure(false);
-		return;
-	}
-
-	const USplineComponent* const SplineComp = SnakePawnPtr->GetSplineComponent();
-	if (SplineComp)
-	{
-		const FTransform& BodyPartTransform = GetTransform();
-		
-
-		/*const FVector CurrentPosL = BodyPartTransform.InverseTransformPosition(SplineComp->GetLocationAtSplinePoint(BodyPartIndex.GetValue() + 1, ESplineCoordinateSpace::World));
-		const FVector FrontPosL = BodyPartTransform.InverseTransformPosition(SplineComp->GetLocationAtSplinePoint(BodyPartIndex.GetValue(), ESplineCoordinateSpace::World));*/
-
-		const FVector CurrentPosL = FVector::ZeroVector;
-		FVector FrontPosL = FVector::ZeroVector;
-		if (BodyPartIndex.GetValue() == 0)
-		{
-			check(SnakePawnPtr);
-			FrontPosL = BodyPartTransform.InverseTransformPosition(SnakePawnPtr->GetActorLocation());
-		}
-		else
-		{
-			check(SnakePawnPtr);
-			const ASnakeBodyPart* const SnakeBodyPart = SnakePawnPtr->GetSnakeBodyPartAtIndex(BodyPartIndex.GetValue() - 1);
-			FrontPosL = BodyPartTransform.InverseTransformPosition(SnakeBodyPart->GetActorLocation());
-		}
-
-		
-		const FVector CurrentTanL = BodyPartTransform.InverseTransformVector(SplineComp->GetTangentAtSplinePoint(BodyPartIndex.GetValue() + 1, ESplineCoordinateSpace::World));
-		const FVector FrontTanL = BodyPartTransform.InverseTransformVector(SplineComp->GetTangentAtSplinePoint(BodyPartIndex.GetValue(), ESplineCoordinateSpace::World));
-		
-
-		/*
-			The spline has the concept of direction. The tangets represent the velocity at a spline point
-			and therefore they have an orientation that we must keep in mind. 
-			As I build the points from the head to the body, the direction should be that. For that
-			reason I need to set the start point as the front spline point and the end as the position of the current
-			body part.
-			I don't have a body part that starts from the head, therefore I need that ordering.
-			If i want to do the opposite, I would need to negate the tangents.
-		*/
-		SplineMeshComp->SetStartAndEnd(FrontPosL, FrontTanL, CurrentPosL, CurrentTanL);
-	}
-	else
-	{
-		GDTUI_LOG(SnakeLogCategorySnakeBody, Warning, TEXT("Can't find spline comp in snake pawn. Can't update spline mesh component!"));
 	}
 }
 

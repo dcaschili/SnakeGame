@@ -25,9 +25,6 @@ public:
 
 	// AActor
 	virtual void Tick(float DeltaSeconds) override;
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
 	// !AActor
 
 	void		SetMoveDir(const FVector& InMoveDirection);
@@ -41,14 +38,8 @@ public:
 	void								SetChangeDirQueue(const TArray<FChangeDirectionAction>& InChangeDirQueue) { ChangeDirectionQueue = InChangeDirQueue; }
 	void								SetChangeDirQueue(TArray<FChangeDirectionAction>&& InChangeDirQueue) { ChangeDirectionQueue = MoveTemp(InChangeDirQueue); }
 	
-	//FORCEINLINE UStaticMeshComponent*	GetStaticMeshComponent() const { return StaticMeshComp; }
-	FORCEINLINE USplineMeshComponent* GetSplineMeshComponent() const { return SplineMeshComp; }
-	
 	FORCEINLINE void SetTriggerEndGameOverlapEvent(bool bEnabled) { bTriggerEndGameOverlapEvent = bEnabled; }
 	FORCEINLINE bool GetTriggerEndGameOverlapEvent() const { return bTriggerEndGameOverlapEvent; }
-
-	void SetSnakeBodyPartIndex(int32 InBodyPartIndex);
-
 
 	/*
 		INTERFACES
@@ -71,14 +62,10 @@ private:
 
 	void BindPawnDelegates();
 	void UnbindPawnDelegates();
-	
-	void UpdateSplineMeshComponent();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SnakeGame|Body", meta=(AllowPrivateAccess=true))
 	ESnakeBodyPartType BodyPartType {};
 
-	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Components")
-	TObjectPtr<USplineMeshComponent> SplineMeshComp{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Components")
 	TObjectPtr<UBoxComponent> SnakeBodyPartCollider{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Components")
@@ -86,10 +73,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Components")
 	TObjectPtr<UMapOccupancyComponent> MapOccupancyComponent{};
 
-	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Body")
-	TEnumAsByte<ESplineMeshAxis::Type> SplineMeshAxis = ESplineMeshAxis::Type::Z;
-	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Body")
-	TObjectPtr<UStaticMesh> SplineStaticMesh{};
 
 
 	TObjectPtr<ASnakePawn>			SnakePawnPtr{};
@@ -97,6 +80,4 @@ private:
 	float							HalfTileSize{};
 
 	bool bTriggerEndGameOverlapEvent = true;
-
-	TOptional<int32> BodyPartIndex{};
 };
