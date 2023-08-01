@@ -115,20 +115,58 @@ void ASnakeBodySplineManager::Tick(float DeltaSeconds)
 			const int32 End = i + 1;
 			ensure(End < SplinePointCount);
 
+			static const bool bUseSplineComp = false;
+			FVector StartPos{};
+			FVector EndPos{};
+			FVector StartTan{};
+			FVector EndTan{};
 
-			/*
-				The spline has the concept of direction. The tangets represent the velocity at a spline point
-				and therefore they have an orientation that we must keep in mind.
-				As I build the points from the head to the body, the direction should be that. For that
-				reason I need to set the start point as the front spline point and the end as the position 
-				of the current body part.
-				I don't have a body part that starts from the head, therefore I need that ordering.
-				If i want to do the opposite, I would need to negate the tangents.
-			*/
-			const FVector StartPos = SnakeBodySplineComponent->GetLocationAtSplinePoint(Start, ESplineCoordinateSpace::Local);
-			const FVector EndPos = SnakeBodySplineComponent->GetLocationAtSplinePoint(End, ESplineCoordinateSpace::Local);
-			const FVector StartTan = SnakeBodySplineComponent->GetTangentAtSplinePoint(Start, ESplineCoordinateSpace::Local);
-			const FVector EndTan = SnakeBodySplineComponent->GetTangentAtSplinePoint(End, ESplineCoordinateSpace::Local);
+			if (bUseSplineComp)
+			{
+				/*
+					The spline has the concept of direction. The tangets represent the velocity at a spline point
+					and therefore they have an orientation that we must keep in mind.
+					As I build the points from the head to the body, the direction should be that. For that
+					reason I need to set the start point as the front spline point and the end as the position
+					of the current body part.
+					I don't have a body part that starts from the head, therefore I need that ordering.
+					If i want to do the opposite, I would need to negate the tangents.
+				*/
+				StartPos = SnakeBodySplineComponent->GetLocationAtSplinePoint(Start, ESplineCoordinateSpace::Local);
+				EndPos = SnakeBodySplineComponent->GetLocationAtSplinePoint(End, ESplineCoordinateSpace::Local);
+				StartTan = SnakeBodySplineComponent->GetTangentAtSplinePoint(Start, ESplineCoordinateSpace::Local);
+				EndTan = SnakeBodySplineComponent->GetTangentAtSplinePoint(End, ESplineCoordinateSpace::Local);
+			}
+			else
+			{
+				const FTransform& LocalTransform = GetTransform();
+				if (Start == 0)
+				{
+					// Use head
+					StartPos = LocalTransform.InverseTransformPosition(SnakePawn->GetActorLocation());
+					StartTan = LocalTransform.InverseTransformVector(SnakePawn->GetMoveDirection());
+
+					if (const ASnakeBodyPart* const SnakeBodyPart = SnakePawn->GetSnakeBodyPartAtIndex(End - 1))
+					{
+						EndPos = LocalTransform.InverseTransformPosition(SnakeBodyPart->GetActorLocation());
+						EndTan = LocalTransform.InverseTransformVector(-SnakeBodyPart->GetMoveDirection());
+					}
+				}
+				else
+				{
+					if (const ASnakeBodyPart* const SnakeBodyPart = SnakePawn->GetSnakeBodyPartAtIndex(Start - 1))
+					{
+						StartPos = LocalTransform.InverseTransformPosition(SnakeBodyPart->GetActorLocation());
+						StartTan = LocalTransform.InverseTransformVector(-SnakeBodyPart->GetMoveDirection());
+					}
+
+					if (const ASnakeBodyPart* const SnakeBodyPart = SnakePawn->GetSnakeBodyPartAtIndex(End - 1))
+					{
+						EndPos = LocalTransform.InverseTransformPosition(SnakeBodyPart->GetActorLocation());
+						EndTan = LocalTransform.InverseTransformVector(-SnakeBodyPart->GetMoveDirection());
+					}
+				}
+			}
 
 			SplineMeshComp->SetStartAndEnd(StartPos, StartTan, EndPos, EndTan);
 		}
@@ -198,3 +236,4 @@ void ASnakeBodySplineManager::UpdateSplinePointPositionWorldSpace(int32 InIndex,
 
 	SnakeBodySplineComponent->SetLocationAtSplinePoint(InIndex, InLocationW, ESplineCoordinateSpace::World);
 }
+
