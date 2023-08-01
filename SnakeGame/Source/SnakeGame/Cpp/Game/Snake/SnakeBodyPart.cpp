@@ -9,28 +9,15 @@
 #include "Components/BoxComponent.h"
 #include "Components/SplineComponent.h"
 
-
 ASnakeBodyPart::ASnakeBodyPart()
 	: Super()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	
 	SnakeBodyPartCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("SnakeBodyPartCollider"));
 	RootComponent = SnakeBodyPartCollider;
 	SnakeBodyPartCollider->SetGenerateOverlapEvents(true);
-	SnakeBodyPartCollider->SetBoxExtent(FVector{ 50.0f, 50.0f, 50.0f });
-
-	/*SplineMeshComp = CreateDefaultSubobject<USplineMeshComponent>(TEXT("SplineMeshComponent"));
-	SplineMeshComp->SetupAttachment(RootComponent);
-	SplineMeshComp->SetForwardAxis(SplineMeshAxis.GetValue());
-	SplineMeshComp->CastShadow = false;
-	SplineMeshComp->SetGenerateOverlapEvents(false);
-	SplineMeshComp->SetMobility(EComponentMobility::Movable);
-	if (SplineStaticMesh)
-	{
-		SplineMeshComp->SetStaticMesh(SplineStaticMesh);
-	}*/
+	SnakeBodyPartCollider->SetBoxExtent(FVector{ 45.0f, 45.0f, 45.0f });
 	
 	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));	
 
@@ -39,7 +26,6 @@ ASnakeBodyPart::ASnakeBodyPart()
 	{
 		MapOccupancyComponent->SetEnableContinuousTileOccupancyTest(true);
 	}
-
 }
 
 void ASnakeBodyPart::Tick(float DeltaSeconds)
