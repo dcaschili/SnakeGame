@@ -9,6 +9,16 @@
 #include "Components/BoxComponent.h"
 #include "Components/SplineComponent.h"
 
+#if !UE_BUILD_SHIPPING
+static TAutoConsoleVariable<bool> CVarShowSnakeBodyColliders(
+	TEXT("Snake.ShowSnakeBodyColliders"),
+	false,
+	TEXT("Enables visibility for box collision component on body snake parts.\n")
+	TEXT("true: show box collision components. \n")
+	TEXT("false: hide box collision components (default) \n"),
+	ECVF_Cheat);
+#endif // !UE_BUILD_SHIPPING
+
 ASnakeBodyPart::ASnakeBodyPart()
 	: Super()
 {
@@ -18,6 +28,7 @@ ASnakeBodyPart::ASnakeBodyPart()
 	RootComponent = SnakeBodyPartCollider;
 	SnakeBodyPartCollider->SetGenerateOverlapEvents(true);
 	SnakeBodyPartCollider->SetBoxExtent(FVector{ 45.0f, 45.0f, 45.0f });
+	SnakeBodyPartCollider->SetLineThickness(10.0f);
 	
 	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));	
 
@@ -52,6 +63,21 @@ void ASnakeBodyPart::Tick(float DeltaSeconds)
 			}
 		}
 	}
+
+#if !UE_BUILD_SHIPPING
+	if (SnakeBodyPartCollider)
+	{
+		const bool bShowColliders = CVarShowSnakeBodyColliders.GetValueOnGameThread();
+		if (bShowColliders && SnakeBodyPartCollider->bHiddenInGame)
+		{
+			SnakeBodyPartCollider->SetHiddenInGame(false);
+		}
+		else if(!bShowColliders && !SnakeBodyPartCollider->bHiddenInGame)
+		{
+			SnakeBodyPartCollider->SetHiddenInGame(true);
+		}
+	}
+#endif // !UE_BUILD_SHIPPING
 }
 
 void ASnakeBodyPart::SetMoveDir(const FVector& InMoveDirection)
