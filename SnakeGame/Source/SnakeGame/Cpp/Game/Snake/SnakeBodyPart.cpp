@@ -3,7 +3,7 @@
 #include "Game/Snake/SnakePawn.h"
 #include "Game/Map/MapFunctionLibrary.h"
 #include "Data/GameConstants.h"
-#include "Game/Components/SnakeBodyPartMoveComponent.h"
+#include "Game/Components/SnakeMoveComponent.h"
 #include "Game/Map/MapOccupancyComponent.h"
 #include "SnakeLog.h"
 #include "Components/BoxComponent.h"
@@ -30,7 +30,7 @@ ASnakeBodyPart::ASnakeBodyPart()
 	SnakeBodyPartCollider->SetBoxExtent(FVector{ SnakeBodyBoxColliderExtent });
 	SnakeBodyPartCollider->SetLineThickness(SnakeBodyBoxColliderThickness);
 	
-	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));	
+	SnakeMovementComponent = CreateDefaultSubobject<USnakeMoveComponent>(TEXT("SnakeMovementComponent"));	
 
 	MapOccupancyComponent = CreateDefaultSubobject<UMapOccupancyComponent>(TEXT("MapOccupancyComponent"));
 	if (ensure(MapOccupancyComponent))

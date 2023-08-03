@@ -1,4 +1,4 @@
-#include "Game/Components/SnakeBodyPartMoveComponent.h"
+#include "Game/Components/SnakeMoveComponent.h"
 
 #include "Data/GameConstants.h"
 #include "GameFramework/Pawn.h"
@@ -7,7 +7,7 @@
 #include "GameFramework/Controller.h"
 #include "Game/Map/MapFunctionLibrary.h"
 
-USnakeBodyPartMoveComponent::USnakeBodyPartMoveComponent()
+USnakeMoveComponent::USnakeMoveComponent()
 	: Super()
 {
 	SetIsReplicatedByDefault(true);
@@ -16,23 +16,23 @@ USnakeBodyPartMoveComponent::USnakeBodyPartMoveComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-void USnakeBodyPartMoveComponent::BeginPlay()
+void USnakeMoveComponent::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-void USnakeBodyPartMoveComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void USnakeMoveComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 }
 
-void USnakeBodyPartMoveComponent::ChangeMoveDirection(const FVector& InNewDirection)
+void USnakeMoveComponent::ChangeMoveDirection(const FVector& InNewDirection)
 {	
 	MoveDirection = InNewDirection;
 	bDirectionChanged = true;
 }
 
-AController* USnakeBodyPartMoveComponent::GetOwningController() const
+AController* USnakeMoveComponent::GetOwningController() const
 {
 	if (APawn* PawnOwner = Cast<APawn>(GetOwner()))
 	{
@@ -41,7 +41,7 @@ AController* USnakeBodyPartMoveComponent::GetOwningController() const
 	return nullptr;
 }
 
-void USnakeBodyPartMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void USnakeMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	

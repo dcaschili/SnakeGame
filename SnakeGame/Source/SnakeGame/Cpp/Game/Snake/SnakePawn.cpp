@@ -4,7 +4,7 @@
 #include "EnhancedInputComponent.h"
 #include "SnakeLog.h"
 #include "Game/Map/MapFunctionLibrary.h"
-#include "Game/Components/SnakeBodyPartMoveComponent.h"
+#include "Game/Components/SnakeMoveComponent.h"
 #include "Game/Snake/SnakeBodyPart.h"
 #include "Game/Snake/SnakeBodyPartSpawner.h"
 #include "Audio/SnakeChangeDirectionAudioComponent.h"
@@ -15,20 +15,8 @@
 #include "SnakeGameGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "Game/Snake/SnakeBodySplineManager.h"
+#include "NiagaraComponent.h"
 
-#if !UE_BUILD_SHIPPING
-#include "DrawDebugHelpers.h"
-#include "Utils/GDTCDebugFunctionLibrary.h"
-#include "TimerManager.h"
-
-static TAutoConsoleVariable<bool> CVarSnakePositionDebug(
-	TEXT("Snake.EnableSnakePositionDebug"),
-	false,
-	TEXT("Enable the snake position debugger:\n")
-	TEXT("true: draw a sphere on the previous position.\n")
-	TEXT("false: disable debugger.\n"),
-	ECVF_Cheat);
-#endif // !UE_BUILD_SHIPPING
 
 ASnakePawn::ASnakePawn()
 {
@@ -44,7 +32,7 @@ ASnakePawn::ASnakePawn()
 	StaticMeshComp->CastShadow = false;
 	StaticMeshComp->SetGenerateOverlapEvents(true);
 	
-	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));
+	SnakeMovementComponent = CreateDefaultSubobject<USnakeMoveComponent>(TEXT("SnakeMovementComponent"));
 	SnakeChangeDirectionAudioComponent = CreateDefaultSubobject<USnakeChangeDirectionAudioComponent>(TEXT("SnakeChangeDirectionAudioComponent"));
 	EndGameOverlapComponent = CreateDefaultSubobject<UEndGameOverlapDetectionComponent>(TEXT("EndGameOverlapDetectionComponent"));
 	MapOccupancyComponent = CreateDefaultSubobject<UMapOccupancyComponent>(TEXT("MapOccupancyComponent"));
@@ -52,6 +40,9 @@ ASnakePawn::ASnakePawn()
 	{
 		MapOccupancyComponent->SetEnableContinuousTileOccupancyTest(true);
 	}
+
+	SnakeBodyRibbonSystemComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SnakeBodyRibbonSystemComponent"));
+	SnakeBodyRibbonSystemComponent->SetupAttachment(RootComponent);
 }
 
 void ASnakePawn::PossessedBy(AController* NewController)
@@ -117,29 +108,6 @@ void ASnakePawn::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-#if !UE_BUILD_SHIPPING
-	if (CVarSnakePositionDebug.GetValueOnGameThread())
-	{
-		// Check if a timer is already active.
-		if (!SnakePositionDebuggerTimerHandle.IsValid())
-		{
-			GetWorldTimerManager().SetTimer(SnakePositionDebuggerTimerHandle, [this]() {
-				FVector CurrentPos = GetActorLocation();
-				CurrentPos.Z = 0.0f;
-				DrawDebugSphere(GetWorld(), CurrentPos, 50.0f, 32, FColor::Red, false, 2.0f);
-				}, 0.05f, true);
-		}
-	}
-	else
-	{
-		// Disable draw debug if it is active.
-		if (SnakePositionDebuggerTimerHandle.IsValid())
-		{
-			GetWorldTimerManager().ClearTimer(SnakePositionDebuggerTimerHandle);
-		}
-	}
-#endif // !UE_BUILD_SHIPPING
-
 	FVector CurrentPos = GetActorLocation();
 
 	const bool bIsPositionNearTileCenter = UMapFunctionLibrary::IsWorldLocationNearCurrentTileCenter(this, CurrentPos);
@@ -189,6 +157,7 @@ void ASnakePawn::AddSnakeBodyPart(ASnakeBodyPart* InSnakeBodyPart)
 	{
 		SnakeBody.Add(InSnakeBodyPart);
 		GDTUI_SHORT_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("Added new snake body part!"));
+		ExtendSnakeBody();
 	}
 }
 
@@ -205,7 +174,7 @@ void ASnakePawn::BeginPlay()
 {
 	Super::BeginPlay();
 
-	BindEvents();
+	BindEvents();	
 }
 
 void ASnakePawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -267,7 +236,6 @@ void ASnakePawn::UnbindEvents()
 	}
 }
 
-
 void ASnakePawn::HandleCollectibleCollected(const FVector& InCollectibleLocation)
 {
 	GDTUI_SHORT_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("Spawning body part spawner!"));
@@ -305,6 +273,19 @@ void ASnakePawn::HandleMoveUpIA(const FInputActionInstance& InputActionInstance)
 			const float Amount = InputActionInstance.GetValue().Get<float>();
 			PendingMoveDirection = FVector(Amount, 0.0f, 0.0f);
 		}
+	}
+}
+
+void ASnakePawn::ExtendSnakeBody()
+{
+	check(SnakeBodyRibbonSystemLifetimeIncrementPerBodyPart >= 0.0f);
+	check(SnakeBodyRibbonSystemLifetime >= 0);
+
+	if (ensure(SnakeBodyRibbonSystemComponent))
+	{
+		SnakeBodyRibbonSystemLifetime += SnakeBodyRibbonSystemLifetimeIncrementPerBodyPart;
+		SnakeBodyRibbonSystemComponent->SetFloatParameter(SnakeBodyRibbonSystemLifetimeParameterName, SnakeBodyRibbonSystemLifetime);
+		GDTUI_PRINT_TO_SCREEN_LOG(TEXT("Extended!"));
 	}
 }
 

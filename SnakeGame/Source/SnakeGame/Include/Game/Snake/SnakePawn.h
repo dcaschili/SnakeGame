@@ -9,7 +9,7 @@
 class UStaticMeshComponent;
 class UInputAction;
 class UInputComponent;
-class USnakeBodyPartMoveComponent;
+class USnakeMoveComponent;
 class ASnakeBodyPart;
 class ASnakeBodyPartSpawner;
 class UEndGameOverlapDetectionComponent;
@@ -17,6 +17,7 @@ class USnakeChangeDirectionAudioComponent;
 class UMapOccupancyComponent;
 class USplineComponent;
 class ASnakeBodySplineManager;
+class UNiagaraComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeDirectionDelegate, const FChangeDirectionAction&, NewDirectionAction);
 
@@ -63,6 +64,8 @@ private:
 	UFUNCTION()
 	void HandleMoveUpIA(const FInputActionInstance& InputActionInstance);
 
+	void ExtendSnakeBody();
+
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UEndGameOverlapDetectionComponent> EndGameOverlapComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
@@ -70,13 +73,18 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UStaticMeshComponent> StaticMeshComp{};	
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
-	TObjectPtr<USnakeBodyPartMoveComponent> SnakeMovementComponent{};
+	TObjectPtr<USnakeMoveComponent> SnakeMovementComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<USnakeChangeDirectionAudioComponent> SnakeChangeDirectionAudioComponent{};
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body")
 	TSubclassOf<ASnakeBodySplineManager> SnakeBodySplineManagerClass{};
-	
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body")
+	TObjectPtr<UNiagaraComponent> SnakeBodyRibbonSystemComponent{};
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body")
+	FName SnakeBodyRibbonSystemLifetimeParameterName = TEXT("LifeSpan");
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body", meta = (UIMin = 0.0f, ClampMin = 0.0f))
+	float SnakeBodyRibbonSystemLifetimeIncrementPerBodyPart = 0.5f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Inputs")
 	TObjectPtr<UInputAction> MoveRightIA{};
@@ -107,10 +115,6 @@ private:
 		isn't applied until the new tile center.
 	*/
 	bool				bChangeDirectionEnabled = true;
-
-
-#if !UE_BUILD_SHIPPING
-	FTimerHandle SnakePositionDebuggerTimerHandle{};
-#endif
+	float				SnakeBodyRibbonSystemLifetime = 0.0f;
 
 };

@@ -16,7 +16,8 @@ public class SnakeGame : ModuleRules
             "GameDevToolboxUI",
             "UMG",
             "CommonUI",
-            "Foliage"
+            "Foliage",
+            "Niagara"
         });
 
 		PrivateIncludePaths.Add("./SnakeGame/Include/");

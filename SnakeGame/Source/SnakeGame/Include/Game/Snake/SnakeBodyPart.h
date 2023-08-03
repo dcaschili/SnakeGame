@@ -11,7 +11,7 @@
 #include "SnakeBodyPart.generated.h"
 
 class ASnakePawn;
-class USnakeBodyPartMoveComponent;
+class USnakeMoveComponent;
 class UMapOccupancyComponent;
 class UBoxComponent;
 class UStaticMesh;
@@ -73,7 +73,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Components")
 	TObjectPtr<UBoxComponent> SnakeBodyPartCollider{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Components")
-	TObjectPtr<USnakeBodyPartMoveComponent> SnakeMovementComponent{};
+	TObjectPtr<USnakeMoveComponent> SnakeMovementComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Components")
 	TObjectPtr<UMapOccupancyComponent> MapOccupancyComponent{};
 

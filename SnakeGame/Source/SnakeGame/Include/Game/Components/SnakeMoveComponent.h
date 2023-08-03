@@ -2,16 +2,16 @@
 
 #include "Components/ActorComponent.h"
 
-#include "SnakeBodyPartMoveComponent.generated.h"
+#include "SnakeMoveComponent.generated.h"
 
 class AController;
 
 UCLASS()
-class SNAKEGAME_API USnakeBodyPartMoveComponent : public UActorComponent
+class SNAKEGAME_API USnakeMoveComponent : public UActorComponent
 {
     GENERATED_BODY()
 public:
-    USnakeBodyPartMoveComponent();
+    USnakeMoveComponent();
 
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
