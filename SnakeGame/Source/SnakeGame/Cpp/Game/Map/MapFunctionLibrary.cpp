@@ -18,7 +18,12 @@ bool UMapFunctionLibrary::GetMapTileFromWorldLocation(const UObject* InWorldCont
 	const int32 MapSize = GameConstants->MapSideTilesCount;
 	const float HalfMapSize = MapSize / 2.0f;
 
-	// Move from world space to [0.0, 1.0] coordinates.
+	/*
+		Map is centered at [0, 0] but the origin in terms of map tile is the bottom left corner.
+		I have to map from world space to [0, 1] coordinates.
+		By adding half the world map size I move from [-Half, +Half] to [0, 2Half] and then dividing by
+		2Half I get the mapping [0, 1].
+	*/	
 	const float WorldXNormalized = (InLocation.X + HalfWorldSize) / WorldSize; // [0.0; 1.0]
 	ensure(WorldXNormalized >= 0.0 && WorldXNormalized <= 1.0);
 	// Remap in map space
