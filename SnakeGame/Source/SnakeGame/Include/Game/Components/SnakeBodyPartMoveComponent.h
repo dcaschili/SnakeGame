@@ -27,8 +27,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SnakeGame|Movement", meta = (AllowPrivateAccess = true))
 	bool bUpdateControlRotation = false;
-
-	TOptional<FVector>			PreviousMoveDirection{};
+	
 	bool						bDirectionChanged = false;
 	FVector						MoveDirection = FVector::RightVector;
 }; 

@@ -27,8 +27,7 @@ void USnakeBodyPartMoveComponent::EndPlay(const EEndPlayReason::Type EndPlayReas
 }
 
 void USnakeBodyPartMoveComponent::ChangeMoveDirection(const FVector& InNewDirection)
-{
-	PreviousMoveDirection = MoveDirection;
+{	
 	MoveDirection = InNewDirection;
 	bDirectionChanged = true;
 }
