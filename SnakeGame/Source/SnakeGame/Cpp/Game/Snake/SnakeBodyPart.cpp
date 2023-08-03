@@ -27,8 +27,8 @@ ASnakeBodyPart::ASnakeBodyPart()
 	SnakeBodyPartCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("SnakeBodyPartCollider"));
 	RootComponent = SnakeBodyPartCollider;
 	SnakeBodyPartCollider->SetGenerateOverlapEvents(true);
-	SnakeBodyPartCollider->SetBoxExtent(FVector{ 45.0f, 45.0f, 45.0f });
-	SnakeBodyPartCollider->SetLineThickness(10.0f);
+	SnakeBodyPartCollider->SetBoxExtent(FVector{ SnakeBodyBoxColliderExtent });
+	SnakeBodyPartCollider->SetLineThickness(SnakeBodyBoxColliderThickness);
 	
 	SnakeMovementComponent = CreateDefaultSubobject<USnakeBodyPartMoveComponent>(TEXT("SnakeMovementComponent"));	
 

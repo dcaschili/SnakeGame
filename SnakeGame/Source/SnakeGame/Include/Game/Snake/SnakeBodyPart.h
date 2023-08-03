@@ -65,6 +65,10 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SnakeGame|Body", meta=(AllowPrivateAccess=true))
 	ESnakeBodyPartType BodyPartType {};
+	UPROPERTY(EditAnywhere, Category = "SnakeGame|Body")
+	float SnakeBodyBoxColliderExtent = 40.0f;
+	UPROPERTY(EditAnywhere, Category = "SnakeGame|Body|Debug")
+	float SnakeBodyBoxColliderThickness = 10.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Components")
 	TObjectPtr<UBoxComponent> SnakeBodyPartCollider{};
