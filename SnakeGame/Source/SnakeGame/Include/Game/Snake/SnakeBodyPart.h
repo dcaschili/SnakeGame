@@ -73,14 +73,13 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Components")
 	TObjectPtr<UBoxComponent> SnakeBodyPartCollider{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Components")
-	TObjectPtr<USnakeMoveComponent> SnakeMovementComponent{};
-	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Components")
 	TObjectPtr<UMapOccupancyComponent> MapOccupancyComponent{};
 
 
 
 	TObjectPtr<ASnakePawn>			SnakePawnPtr{};
 	TArray<FChangeDirectionAction>	ChangeDirectionQueue{};
+	FVector							MoveDirection = FVector::RightVector;
 	float							HalfTileSize{};
 
 	bool bTriggerEndGameOverlapEvent = true;

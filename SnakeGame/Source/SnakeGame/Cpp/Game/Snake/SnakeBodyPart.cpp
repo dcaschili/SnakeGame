@@ -30,8 +30,6 @@ ASnakeBodyPart::ASnakeBodyPart()
 	SnakeBodyPartCollider->SetBoxExtent(FVector{ SnakeBodyBoxColliderExtent });
 	SnakeBodyPartCollider->SetLineThickness(SnakeBodyBoxColliderThickness);
 	
-	SnakeMovementComponent = CreateDefaultSubobject<USnakeMoveComponent>(TEXT("SnakeMovementComponent"));	
-
 	MapOccupancyComponent = CreateDefaultSubobject<UMapOccupancyComponent>(TEXT("MapOccupancyComponent"));
 	if (ensure(MapOccupancyComponent))
 	{
@@ -45,24 +43,53 @@ void ASnakeBodyPart::Tick(float DeltaSeconds)
 
 	if (!SnakePawnPtr) return;
 
-	if (!SnakeMovementComponent) return;
+	const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
+	if (!GameConstants)
+	{
+		ensure(false);
+		return;
+	}
 
-	if (!ChangeDirectionQueue.IsEmpty())
+	const FVector CurrentPos = GetActorLocation();
+	float FrameMovement = GameConstants->MaxMovementSpeed * DeltaSeconds;
+	FVector ResultingPos = CurrentPos + MoveDirection * FrameMovement;
+
+	while (!ChangeDirectionQueue.IsEmpty())
 	{
 		const FChangeDirectionAction ChangeDirAction = ChangeDirectionQueue[0];
-		const FVector CurrentPosition = GetActorLocation();
 
-		// Check if we are within the change direction tile.
-		if ((CurrentPosition - ChangeDirAction.Location).SquaredLength() <= (HalfTileSize * HalfTileSize))
+		/* 
+			If with current frame movement distance we aren't able to reach the tile center 
+			defined as a change direction tile, we simply apply the calculated position.
+		*/
+		// Check if the result pos "overshoots" the change direction location
+
+		/*
+			Consider C the point where we have to change direction.
+			And assuming that the snake is moving only in the 4 basic directions.
+			If the vector that goes from C to the ResultingPos is aligned with
+			our current move direction (dot > 0), it means that we are in the "overshoot" case
+			we have exceeded the limit and we need to change direction.
+			On the contrary, if move direction and the vector are on the opposite direction
+			(dot < 0) it means that we didn't reach the point and we can simply apply the 
+			motion.
+		*/
+		const FVector ToTileVector = ResultingPos - ChangeDirAction.Location;
+		const bool bOvershoot = MoveDirection.Dot(ToTileVector) >= 0.0;
+		if (!bOvershoot)
 		{
-			// Check if we need to change direction
-			if (UMapFunctionLibrary::IsWorldLocationNearCurrentTileCenter(this, CurrentPosition))
-			{
-				ChangeDirectionQueue.RemoveAt(0);
-				SnakeMovementComponent->ChangeMoveDirection(ChangeDirAction.Direction);
-			}
+			// Movement won't reach the change direction tile center, just move the actor.
+			break;
 		}
+
+		// Move on the tile center reducing the remaining frame movement by that amount.
+		FrameMovement = ToTileVector.Length();
+		MoveDirection = ChangeDirAction.Direction;
+		ResultingPos = ChangeDirAction.Location + MoveDirection * FrameMovement;
+		ChangeDirectionQueue.RemoveAt(0);
 	}
+
+	SetActorLocation(ResultingPos, true);
 
 #if !UE_BUILD_SHIPPING
 	if (SnakeBodyPartCollider)
@@ -82,10 +109,7 @@ void ASnakeBodyPart::Tick(float DeltaSeconds)
 
 void ASnakeBodyPart::SetMoveDir(const FVector& InMoveDirection)
 {
-	if (ensure(SnakeMovementComponent))
-	{
-		SnakeMovementComponent->ChangeMoveDirection(InMoveDirection);
-	}
+	MoveDirection = InMoveDirection;
 }
 
 void ASnakeBodyPart::SetSnakePawn(ASnakePawn* InPawnPtr)
@@ -114,11 +138,7 @@ void ASnakeBodyPart::AddChangeDirAction(const FChangeDirectionAction& InChangeDi
 
 FVector ASnakeBodyPart::GetMoveDirection() const
 {
-	if (ensure(SnakeMovementComponent))
-	{
-		return SnakeMovementComponent->GetMoveDirection();
-	}
-	return FVector::RightVector;
+	return MoveDirection;	
 }
 
 void ASnakeBodyPart::BeginPlay()
