@@ -2,11 +2,8 @@
 
 #include "GameFramework/Actor.h"
 #include "Game/Snake/SnakeBodyPartType.h"
-#include "Containers/Queue.h"
-#include "Game/ChangeDirectionAction.h"
 #include "Game/Interfaces/SnakeBodyPartTypeInterface.h"
 #include "Game/Interfaces/TriggerEndGameInterface.h"
-#include "Components/SplineMeshComponent.h"
 
 #include "SnakeBodyPart.generated.h"
 
@@ -24,7 +21,9 @@ public:
 	ASnakeBodyPart();
 
 	// AActor
+#if !UE_BUILD_SHIPPING
 	virtual void Tick(float DeltaSeconds) override;
+#endif // !UE_BUILD_SHIPPING
 	// !AActor
 
 	void		SetMoveDir(const FVector& InMoveDirection);
@@ -32,11 +31,8 @@ public:
 	void		SetSnakePawn(ASnakePawn* InPawnPtr);
 	ASnakePawn* GetSnakePawn() const;
 	
-	/** Enqueue a change direction action */
-	void								AddChangeDirAction(const FChangeDirectionAction& InChangeDirAction);
-	TArray<FChangeDirectionAction>		GetChangeDirectionQueue() const { return ChangeDirectionQueue; }
-	void								SetChangeDirQueue(const TArray<FChangeDirectionAction>& InChangeDirQueue) { ChangeDirectionQueue = InChangeDirQueue; }
-	void								SetChangeDirQueue(TArray<FChangeDirectionAction>&& InChangeDirQueue) { ChangeDirectionQueue = MoveTemp(InChangeDirQueue); }
+	USnakeMoveComponent*		GetSnakeMoveComponent() { return BodyPartMoveComp; }
+	const USnakeMoveComponent*	GetSnakeMoveComponent() const { return BodyPartMoveComp; }
 	
 	FORCEINLINE void SetTriggerEndGameOverlapEvent(bool bEnabled) { bTriggerEndGameOverlapEvent = bEnabled; }
 	FORCEINLINE bool GetTriggerEndGameOverlapEvent() const { return bTriggerEndGameOverlapEvent; }
@@ -74,13 +70,12 @@ private:
 	TObjectPtr<UBoxComponent> SnakeBodyPartCollider{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Components")
 	TObjectPtr<UMapOccupancyComponent> MapOccupancyComponent{};
+	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|Components")
+	TObjectPtr<USnakeMoveComponent> BodyPartMoveComp{};
 
 
-
+	UPROPERTY()
 	TObjectPtr<ASnakePawn>			SnakePawnPtr{};
-	TArray<FChangeDirectionAction>	ChangeDirectionQueue{};
-	FVector							MoveDirection = FVector::RightVector;
-	float							HalfTileSize{};
-
-	bool bTriggerEndGameOverlapEvent = true;
+	
+	bool	bTriggerEndGameOverlapEvent = true;
 };

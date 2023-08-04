@@ -8,6 +8,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Components/BoxComponent.h"
 #include "Game/Snake/SnakeBodyPart.h"
+#include "Game/Components/SnakeMoveComponent.h"
 
 
 ASnakeBodyPartSpawner::ASnakeBodyPartSpawner()
@@ -55,14 +56,17 @@ void ASnakeBodyPartSpawner::NotifyActorEndOverlap(AActor* OtherActor)
 						
 						if (ASnakeBodyPart* const CurrentTail = Cast<ASnakeBodyPart>(OtherActor))
 						{
-							if (ASnakePawn* const TailSnakePawn = CurrentTail->GetSnakePawn())
+							ASnakePawn* const TailSnakePawn = CurrentTail->GetSnakePawn();
+							const USnakeMoveComponent* const MoveComp = CurrentTail->GetSnakeMoveComponent();
+
+							if (TailSnakePawn && MoveComp)
 							{
 								CurrentTail->SetSnakeBodyPartType(ESnakeBodyPartType::kBody);
-								SpawnBodyPart(TailSnakePawn, CurrentTail->GetMoveDirection(), CurrentTail->GetChangeDirectionQueue());
+								SpawnBodyPart(TailSnakePawn, CurrentTail->GetMoveDirection(), MoveComp->GetChangeDirActionQueue());
 							}
 							else
 							{
-								GDTUI_LOG(SnakeLogCategorySnakeBody, Error, TEXT("Current body tail doesn't have a valid reference to the snake pawn!"));
+								GDTUI_LOG(SnakeLogCategorySnakeBody, Error, TEXT("Current body tail doesn't have a valid reference to the snake pawn or move comp!"));
 								ensure(false);
 							}
 						}
@@ -115,7 +119,10 @@ void ASnakeBodyPartSpawner::SpawnBodyPart(ASnakePawn* InSnakePawn, const FVector
 
 				SnakeBodyPart->SetSnakePawn(InSnakePawn);
 				SnakeBodyPart->SetMoveDir(InMoveDirection);
-				SnakeBodyPart->SetChangeDirQueue(InChangeDirectionQueue);
+				if (USnakeMoveComponent* const MoveComp = SnakeBodyPart->GetSnakeMoveComponent())
+				{
+					MoveComp->SetChangeDirActionQueue(InChangeDirectionQueue);
+				}				
 
 				if (InSnakePawn->GetSnakeBodyPartsCount() <= NoCollisionBodyPartsCount)
 				{

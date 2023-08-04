@@ -29,7 +29,6 @@ public:
 	ASnakePawn();
 
 	virtual void PossessedBy(AController* NewController) override;
-	virtual void Tick(float DeltaSeconds) override;
 
 	// ISnakeBodyPartTypeInterface
 	virtual void				SetSnakeBodyPartType(ESnakeBodyPartType InBodyPartType) override { BodyPartType = BodyPartType; }
@@ -64,7 +63,11 @@ private:
 	UFUNCTION()
 	void HandleMoveUpIA(const FInputActionInstance& InputActionInstance);
 
-	void ExtendSnakeBody();
+	void	ExtendSnakeBody();
+
+	FVector GenerateChangeDirectionActionLocation() const;
+	void	PerformChangeDir(const FVector& InNewDir);
+
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UEndGameOverlapDetectionComponent> EndGameOverlapComponent{};
@@ -102,19 +105,9 @@ private:
 	TArray<ASnakeBodyPart*> SnakeBody{};
 	UPROPERTY()
 	TObjectPtr<ASnakeBodySplineManager> SnakeBodySplineManager{};
-
 	
-	FVector				MoveDirection = FVector::RightVector;
-	TOptional<FVector>	PendingMoveDirection{};
 	int32				TileSize = 0;
 	int32				HalfTileSize = 0;
 	float				DistanceFromTileCenterTolerance = 0.0f;
-	/* 
-		After a direction change, I should wait for the new tile center 
-		before aplying a new change. The user can change direction but it 
-		isn't applied until the new tile center.
-	*/
-	bool				bChangeDirectionEnabled = true;
 	float				SnakeBodyRibbonSystemLifetime = 0.0f;
-
 };

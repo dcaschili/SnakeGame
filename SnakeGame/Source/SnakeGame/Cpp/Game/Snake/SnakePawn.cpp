@@ -20,7 +20,7 @@
 
 ASnakePawn::ASnakePawn()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	bUseControllerRotationYaw = true;
 	bUseControllerRotationPitch = false;
@@ -100,45 +100,6 @@ void ASnakePawn::PossessedBy(AController* NewController)
 			GDTUI_LOG(SnakeLogCategorySnakeBody, Warning, TEXT("Trying to initializa another Snake body spline manager for the same snake!"));
 			ensure(false);
 		}
-	}
-
-}
-
-void ASnakePawn::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-
-	FVector CurrentPos = GetActorLocation();
-
-	const bool bIsPositionNearTileCenter = UMapFunctionLibrary::IsWorldLocationNearCurrentTileCenter(this, CurrentPos);
-
-	if (PendingMoveDirection.IsSet() && bChangeDirectionEnabled)
-	{
-		// Check if the snake is near the center of the tile to allow for the change in direction
-		// If this is basically the center of the tile, allow the change in direction. 
-		// Otherwise let's proceed in this same direction until we reach a center.	
-		if(bIsPositionNearTileCenter)
-		{ 
-			MoveDirection = PendingMoveDirection.GetValue();
-			PendingMoveDirection.Reset();
-			GDTUI_SHORT_LOG(SnakeLogCategorySnakeBody, VeryVerbose, TEXT("Disable change direction!"));
-			bChangeDirectionEnabled = false;
-
-			check(SnakeMovementComponent);
-			SnakeMovementComponent->ChangeMoveDirection(MoveDirection);
-
-			FChangeDirectionAction ChangeDirectionAction{};
-			ChangeDirectionAction.Direction = MoveDirection;
-			ChangeDirectionAction.Location = CurrentPos;
-
-			OnChangeDirection.Broadcast(ChangeDirectionAction);
-		}
-	}
-
-	if (!bChangeDirectionEnabled && !bIsPositionNearTileCenter)
-	{
-		GDTUI_SHORT_LOG(SnakeLogCategorySnakeBody, VeryVerbose, TEXT("Enable change direction!"));
-		bChangeDirectionEnabled = true;
 	}
 }
 
@@ -252,26 +213,40 @@ void ASnakePawn::HandleCollectibleCollected(const FVector& InCollectibleLocation
 
 void ASnakePawn::HandleMoveRightIA(const FInputActionInstance& InputActionInstance)
 {
+	if (SnakeMovementComponent && SnakeMovementComponent->IsChangeDirActionPending())
+	{
+		GDTUI_SHORT_LOG(SnakeLogCategoryInput, Verbose, TEXT("Can't change direction, there is still an action pending!"));
+		return;
+	}
+
 	if (InputActionInstance.GetValue().IsNonZero())
 	{
 		// Can't change direction left/right without first going up or down.
-		if (!PendingMoveDirection.IsSet() && FMath::IsNearlyZero(MoveDirection.Y))
+		if (FMath::IsNearlyZero(GetMoveDirection().Y))
 		{
 			const float Amount = InputActionInstance.GetValue().Get<float>();
-			PendingMoveDirection = FVector(0.0f, Amount, 0.0f);
+			const FVector NewDir = FVector(0.0f, Amount, 0.0f);
+			PerformChangeDir(NewDir);
 		}
 	}
 }
 
 void ASnakePawn::HandleMoveUpIA(const FInputActionInstance& InputActionInstance)
 {
+	if (SnakeMovementComponent && SnakeMovementComponent->IsChangeDirActionPending())
+	{
+		GDTUI_SHORT_LOG(SnakeLogCategoryInput, Verbose, TEXT("Can't change direction, there is still an action pending!"));
+		return;
+	}
+
 	if (InputActionInstance.GetValue().IsNonZero())
 	{
 		// Can't change direction up/down without first going left or right.
-		if (!PendingMoveDirection.IsSet() && FMath::IsNearlyZero(MoveDirection.X))
+		if (FMath::IsNearlyZero(GetMoveDirection().X))
 		{
 			const float Amount = InputActionInstance.GetValue().Get<float>();
-			PendingMoveDirection = FVector(Amount, 0.0f, 0.0f);
+			const FVector NewDir = FVector(Amount, 0.0f, 0.0f);
+			PerformChangeDir(NewDir);
 		}
 	}
 }
@@ -286,6 +261,66 @@ void ASnakePawn::ExtendSnakeBody()
 		SnakeBodyRibbonSystemLifetime += SnakeBodyRibbonSystemLifetimeIncrementPerBodyPart;
 		SnakeBodyRibbonSystemComponent->SetFloatParameter(SnakeBodyRibbonSystemLifetimeParameterName, SnakeBodyRibbonSystemLifetime);
 		GDTUI_PRINT_TO_SCREEN_LOG(TEXT("Extended!"));
+	}
+}
+
+FVector ASnakePawn::GenerateChangeDirectionActionLocation() const
+{
+	FVector ChangeDirTileCenter{};
+	if (ensure(SnakeMovementComponent))
+	{
+		const FVector MoveDir = SnakeMovementComponent->GetMoveDirection();
+
+		const FVector CurrentPos = GetActorLocation();
+		FVector NearestTileCenter{};
+
+		// Get nearest tile center to current position
+		if (UMapFunctionLibrary::AlignWorldLocationToTileCenter(this, CurrentPos, NearestTileCenter))
+		{
+			// Check if we are beyond the nearest tile center
+			const bool bOvershoot = UMapFunctionLibrary::DoesOvershootPosition(this, CurrentPos, MoveDir, NearestTileCenter);
+			if (bOvershoot)
+			{
+				// Given that we are beyond the nearest tile center, use the next to change direction.
+				FVector NextTileToChangeDir{};
+				if (UMapFunctionLibrary::GetFollowingTile(this, NearestTileCenter, MoveDir, NextTileToChangeDir))
+				{
+					ChangeDirTileCenter = NextTileToChangeDir;
+				}	
+				else
+				{
+					GDTUI_LOG(SnakeLogCategoryMap, Warning, TEXT("Something went wrong in finding the next tile in the map!"));
+					ensure(false);
+				}
+			}
+			else
+			{
+				// We still have to reach the nearest tile center
+				ChangeDirTileCenter = NearestTileCenter;
+			}			
+		}
+		else
+		{
+			GDTUI_LOG(SnakeLogCategoryMap, Warning, TEXT("Can't convert world location to tile center!"));
+			ensure(false);
+		}
+	}
+
+	ChangeDirTileCenter.Z = GetActorLocation().Z;
+	return ChangeDirTileCenter;
+}
+
+void ASnakePawn::PerformChangeDir(const FVector& InNewDir)
+{
+	if (ensure(SnakeMovementComponent))
+	{
+		FChangeDirectionAction ChangeDirAction{};
+		ChangeDirAction.Direction = InNewDir;
+		ChangeDirAction.Location = GenerateChangeDirectionActionLocation();
+
+		SnakeMovementComponent->AddChangeDirAction(ChangeDirAction);
+
+		OnChangeDirection.Broadcast(ChangeDirAction);
 	}
 }
 

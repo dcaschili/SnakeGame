@@ -42,4 +42,25 @@ public:
 		@return true if the conversion was successful
 	*/
 	static bool AlignWorldLocationToTileCenter(const UObject* InWorldContextObject, const FVector& InCurrentLocation, FVector& OutLocation);
+
+	/**
+		Given a location and a vector, it returns the next tile in the map following that direction.
+		@param InWorldContextObject
+		@param InCurrentPos		The world position used to get the current tile.
+		@param InCurrentDir		The direction used to find the next tile.		
+		@param OutNextTile		The next tile
+		@return	true if a next tile is available within the map, false otherwise
+	*/
+	static bool GetFollowingTile(const UObject* InWorldContextObject, const FVector& InCurrentPos, const FVector& InCurrentDir, FVector& OutNextTile);
+	
+	/**
+		It checks if the PositionToCheck, reached with the given InDirection, has passed the Target
+		or not. 
+		@param InWorldContextObject
+		@param InPositionToCheck	The world position to check agains the target.
+		@param InDirection			The direction followed to reach the PositionToCheck.		
+		@param InTarget				The location to check.
+		@return		true if overshoot, false otherwise
+	*/
+	static bool DoesOvershootPosition(const UObject* InWorldContextObject, const FVector& InPositionToCheck, const FVector& InDirection, const FVector& InTarget);
 };

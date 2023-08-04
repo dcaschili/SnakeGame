@@ -26,10 +26,25 @@ void USnakeMoveComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void USnakeMoveComponent::ChangeMoveDirection(const FVector& InNewDirection)
-{	
-	MoveDirection = InNewDirection;
-	bDirectionChanged = true;
+void USnakeMoveComponent::SetMoveDir(const FVector& InNewDir)
+{
+	MoveDirection = InNewDir;
+}
+
+void USnakeMoveComponent::AddChangeDirAction(const FChangeDirectionAction& InChangeDirection)
+{
+	ChangeDirectionQueue.Add(InChangeDirection);
+}
+
+void USnakeMoveComponent::SetChangeDirActionQueue(const TArray<FChangeDirectionAction>& InChangeDirQueue)
+{
+	TArray<FChangeDirectionAction> tmp = InChangeDirQueue;
+	SetChangeDirActionQueue(MoveTemp(tmp));
+}
+
+void USnakeMoveComponent::SetChangeDirActionQueue(TArray<FChangeDirectionAction>&& InChangeDirQueue)
+{
+	ChangeDirectionQueue = MoveTemp(InChangeDirQueue);
 }
 
 AController* USnakeMoveComponent::GetOwningController() const
@@ -45,63 +60,64 @@ void USnakeMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
-	check(GetOwner());
-	FVector CurrentPos = GetOwner()->GetActorLocation();	
-	
-	const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
-	ensure(GameConstants);
-	float MovementAmountWithDeltaTime = (GameConstants ? GameConstants->MaxMovementSpeed : 1.0f) * DeltaTime;
-
-	if (bDirectionChanged)
+	if (ensure(GetOwner()))
 	{
-		FVector TileCenter{};
-		if (UMapFunctionLibrary::AlignWorldLocationToTileCenter(this, CurrentPos, TileCenter))
+		const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
+		if (!GameConstants)
 		{
-			FVector TmpCurrentPos = CurrentPos;
-			TmpCurrentPos.Z = 0.0f;
+			ensure(false);
+			return;
+		}
 
-			float DistanceToTileCenter = (TileCenter - TmpCurrentPos).Length();
-			ensure(MovementAmountWithDeltaTime >= DistanceToTileCenter);
+		const float CurrentZ = GetOwner()->GetActorLocation().Z;
+		FVector CurrentPos = GetOwner()->GetActorLocation();
+		CurrentPos.Z = 0.f;
+
+		float FrameMovement = GameConstants->MaxMovementSpeed * DeltaTime;
+		FVector ResultingPos = CurrentPos + MoveDirection * FrameMovement;
+
+		while (!ChangeDirectionQueue.IsEmpty())
+		{
+			const FChangeDirectionAction ChangeDirAction = ChangeDirectionQueue[0];
+			FVector ChangeDirLocation = ChangeDirAction.Location;
+			ChangeDirLocation.Z = 0.f;
 
 			/*
-				Take into consideration the movement executed to 
-				reach the tile center.
+				If with current frame movement distance we aren't able to reach the tile center
+				defined as a change direction tile, we simply apply the calculated position.
 			*/
-			MovementAmountWithDeltaTime -= DistanceToTileCenter;
-			
-			/* 
-				Setup position on tile center waiting to move 
-				toward the new direction by the remaining amount
-			*/
-			TmpCurrentPos = TileCenter;
-			TmpCurrentPos.Z = CurrentPos.Z;
+			// Check if the result pos "overshoots" the change direction location
+					
+			const bool bOvershoot = UMapFunctionLibrary::DoesOvershootPosition(this, ResultingPos, MoveDirection, ChangeDirAction.Location);;
+			if (!bOvershoot)
+			{
+				// Movement won't reach the change direction tile center, just move the actor.
+				break;
+			}
 
-			CurrentPos = TmpCurrentPos;			
-			
-			bDirectionChanged = false;
+			// Move on the tile center reducing the remaining frame movement by that amount.
+			FrameMovement = (ResultingPos - ChangeDirLocation).Length();
+			MoveDirection = ChangeDirAction.Direction;
+			ResultingPos = ChangeDirLocation + MoveDirection * FrameMovement;
+			ChangeDirectionQueue.RemoveAt(0);
 		}
-		else
-		{			
-			GDTUI_LOG(SnakeLogCategoryGame, Error, TEXT("Unable to find a corresponding map tile for current position!"));
-			check(false);
+
+		ResultingPos.Z = CurrentZ;
+		GetOwner()->SetActorLocation(ResultingPos, true);
+		
+		if (bUpdateControlRotation)
+		{
+			if (AController* const Controller = GetOwningController())
+			{
+				const FRotator FacingDir = UKismetMathLibrary::FindLookAtRotation(ResultingPos, ResultingPos + MoveDirection * 500.0f);
+				Controller->SetControlRotation(FacingDir);
+			}
+			else
+			{
+				GDTUI_LOG(SnakeLogCategoryGame, Error, TEXT("Unable to retrieve Controller! To use bUpdateControlRotation this component must be used on a pawn with a controller!"));
+				ensure(false);
+			}
 		}
 	}
 
-	const FVector NewPos = CurrentPos + (MoveDirection * MovementAmountWithDeltaTime);
-
-	GetOwner()->SetActorLocation(NewPos, true);
-
-	if (bUpdateControlRotation)
-	{
-		if (AController* const Controller = GetOwningController())
-		{
-			const FRotator FacingDir = UKismetMathLibrary::FindLookAtRotation(NewPos, NewPos + MoveDirection * 500.0f);
-			Controller->SetControlRotation(FacingDir);
-		}
-		else
-		{
-			GDTUI_LOG(SnakeLogCategoryGame, Error, TEXT("Unable to retrieve Controller! To use bUpdateControlRotation this component must be used on a pawn with a controller!"));
-			ensure(false);
-		}
-	}
 }

@@ -2,6 +2,7 @@
 
 #include "Game/Map/MapManager.h"
 #include "Data/GameConstants.h"
+#include "SnakeLog.h"
 
 bool UMapFunctionLibrary::GetMapTileFromWorldLocation(const UObject* InWorldContextObject, const FVector& InLocation, FIntVector2& OutTileLocation)
 {
@@ -116,6 +117,45 @@ bool UMapFunctionLibrary::AlignWorldLocationToTileCenter(const UObject* InWorldC
 			OutLocation = MoveTemp(WorldLocation);
 			return true;
 		}
+	}
+
+	return false;
+}
+
+bool UMapFunctionLibrary::GetFollowingTile(const UObject* InWorldContextObject, const FVector& InCurrentPos, const FVector& InCurrentDir, FVector& OutNextTile)
+{
+	// InTileLocation Y->Row; X->Column.
+	FIntVector2 TileLocation{};
+	if (GetMapTileFromWorldLocation(InWorldContextObject, InCurrentPos, TileLocation))
+	{
+		if (FMath::IsNearlyZero(InCurrentDir.X))
+		{
+			TileLocation.X += 1 * FMath::Sign(InCurrentDir.Y);			
+		}
+		else if (FMath::IsNearlyZero(InCurrentDir.Y))
+		{
+			TileLocation.Y += 1 * FMath::Sign(InCurrentDir.X);
+		}
+		else
+		{
+			GDTUI_LOG(SnakeLogCategoryMap, Warning, TEXT("Requested direction isn't valid! %s"), *InCurrentDir.ToString());
+			return false;
+		}
+
+		return GetWorldLocationFromTile(InWorldContextObject, TileLocation, OutNextTile);
+	}
+	
+	GDTUI_LOG(SnakeLogCategoryMap, Warning, TEXT("Requested position isn't valid! %s"), *InCurrentPos.ToString());
+    return false;
+}
+
+bool UMapFunctionLibrary::DoesOvershootPosition(const UObject* InWorldContextObject, const FVector& InPositionToCheck, const FVector& InDirection, const FVector& InTarget)
+{
+	const FVector ToPosition = InPositionToCheck - InTarget;
+	if (InDirection.Dot(ToPosition) > 0)
+	{
+		// Vector are pointing on the same direction, overshoot.
+		return true;
 	}
 
 	return false;
