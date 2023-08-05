@@ -14,8 +14,9 @@
 #include "Game/CollectiblesSpawner.h"
 #include "SnakeGameGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
-#include "Game/Snake/SnakeBodySplineManager.h"
 #include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "Game/ChangeDirectionAction.h"
 
 
 ASnakePawn::ASnakePawn()
@@ -71,35 +72,6 @@ void ASnakePawn::PossessedBy(AController* NewController)
 	{
 		GDTUI_PRINT_TO_SCREEN_ERROR(TEXT("Missing Snake body part spawner class!"));
 		ensure(false);
-	}
-
-	if (NewController && NewController->IsLocalController())
-	{
-		if (!SnakeBodySplineManager)
-		{
-			if (SnakeBodySplineManagerClass)
-			{
-				UWorld* const World = GetWorld();
-				if (ensure(World))
-				{
-					SnakeBodySplineManager = World->SpawnActor<ASnakeBodySplineManager>(SnakeBodySplineManagerClass);
-					if (SnakeBodySplineManager)
-					{
-						SnakeBodySplineManager->SetSnakePawn(this);
-					}
-				}
-			}
-			else
-			{
-				GDTUI_PRINT_TO_SCREEN_ERROR(TEXT("Missing snake spline body manager class!"));
-				ensure(false);
-			}
-		}
-		else
-		{
-			GDTUI_LOG(SnakeLogCategorySnakeBody, Warning, TEXT("Trying to initializa another Snake body spline manager for the same snake!"));
-			ensure(false);
-		}
 	}
 }
 
@@ -253,14 +225,21 @@ void ASnakePawn::HandleMoveUpIA(const FInputActionInstance& InputActionInstance)
 
 void ASnakePawn::ExtendSnakeBody()
 {
-	check(SnakeBodyRibbonSystemLifetimeIncrementPerBodyPart >= 0.0f);
-	check(SnakeBodyRibbonSystemLifetime >= 0);
-
-	if (ensure(SnakeBodyRibbonSystemComponent))
+	if (!SnakeBodyNiagaraParamCollection)
 	{
-		SnakeBodyRibbonSystemLifetime += SnakeBodyRibbonSystemLifetimeIncrementPerBodyPart;
-		SnakeBodyRibbonSystemComponent->SetFloatParameter(SnakeBodyRibbonSystemLifetimeParameterName, SnakeBodyRibbonSystemLifetime);
-		GDTUI_PRINT_TO_SCREEN_LOG(TEXT("Extended!"));
+		GDTUI_PRINT_TO_SCREEN_ERROR(TEXT("ERROR! Missing niagara param collection reference in snake pawn!"));
+		return;
+	}
+
+	if (UNiagaraParameterCollectionInstance* const SnakeBodyNiagaraParmCollectionInstance = UNiagaraFunctionLibrary::GetNiagaraParameterCollection(this, SnakeBodyNiagaraParamCollection))
+	{		
+		GDTUI_LOG(SnakeLogCategorySnakeBody, Verbose, TEXT("Snake body extended!"));
+		SnakeBodyNiagaraParmCollectionInstance->SetFloatParameter(TotBodyCountNiagaraParamName, SnakeBody.Num());
+	}
+	else
+	{
+		GDTUI_LOG(SnakeLogCategorySnakeBody, Warning, TEXT("Can't find niagara parameter collection instance!"));
+		ensure(false);
 	}
 }
 

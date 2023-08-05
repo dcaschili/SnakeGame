@@ -2,7 +2,7 @@
 
 #include "GameFramework/Pawn.h"
 #include "Game/Interfaces/SnakeBodyPartTypeInterface.h"
-#include "Game/ChangeDirectionAction.h"
+
 
 #include "SnakePawn.generated.h"
 
@@ -15,9 +15,9 @@ class ASnakeBodyPartSpawner;
 class UEndGameOverlapDetectionComponent;
 class USnakeChangeDirectionAudioComponent;
 class UMapOccupancyComponent;
-class USplineComponent;
-class ASnakeBodySplineManager;
 class UNiagaraComponent;
+class UNiagaraParameterCollection;
+struct FChangeDirectionAction;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeDirectionDelegate, const FChangeDirectionAction&, NewDirectionAction);
 
@@ -78,16 +78,17 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<USnakeMoveComponent> SnakeMovementComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
-	TObjectPtr<USnakeChangeDirectionAudioComponent> SnakeChangeDirectionAudioComponent{};
-
-	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body")
-	TSubclassOf<ASnakeBodySplineManager> SnakeBodySplineManagerClass{};
-	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body")
+	TObjectPtr<USnakeChangeDirectionAudioComponent> SnakeChangeDirectionAudioComponent{};	
+	/*
+		PARTICLE SYSTEM - BODY
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body|Ribbon")
 	TObjectPtr<UNiagaraComponent> SnakeBodyRibbonSystemComponent{};
-	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body")
-	FName SnakeBodyRibbonSystemLifetimeParameterName = TEXT("LifeSpan");
-	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body", meta = (UIMin = 0.0f, ClampMin = 0.0f))
-	float SnakeBodyRibbonSystemLifetimeIncrementPerBodyPart = 0.5f;
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body|Ribbon")
+	TObjectPtr<UNiagaraParameterCollection> SnakeBodyNiagaraParamCollection{};
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body|Ribbon")
+	FString TotBodyCountNiagaraParamName = TEXT("TotBodyCount");
+	
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Inputs")
 	TObjectPtr<UInputAction> MoveRightIA{};
@@ -103,11 +104,8 @@ private:
 
 	UPROPERTY()
 	TArray<ASnakeBodyPart*> SnakeBody{};
-	UPROPERTY()
-	TObjectPtr<ASnakeBodySplineManager> SnakeBodySplineManager{};
 	
-	int32				TileSize = 0;
-	int32				HalfTileSize = 0;
-	float				DistanceFromTileCenterTolerance = 0.0f;
-	float				SnakeBodyRibbonSystemLifetime = 0.0f;
+	int32 TileSize = 0;
+	int32 HalfTileSize = 0;
+	float DistanceFromTileCenterTolerance = 0.0f;	
 };

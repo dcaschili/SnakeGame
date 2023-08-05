@@ -99,7 +99,8 @@ void ASnakeBodySplineManager::Tick(float DeltaSeconds)
 	/*
 		UPDATE SPLINE MESH COMPONENTS
 	*/
-	if (SnakeBodySplineComponent)
+	//if (SnakeBodySplineComponent)
+	if (false)
 	{
 		for (int32 i = 0; i < SnakeBodySplineMeshComponentsList.Num(); ++i)
 		{
@@ -201,7 +202,7 @@ void ASnakeBodySplineManager::AddSplinePointWorldSpace(const FVector& InLocation
 		/*
 			CHECK IF A NEW SPLINE MESH COMPONENT IS NEEDED
 		*/
-		const int32 NumOfSplinePoints = SnakeBodySplineComponent->GetNumberOfSplinePoints();
+		/*const int32 NumOfSplinePoints = SnakeBodySplineComponent->GetNumberOfSplinePoints();
 		if (NumOfSplinePoints > 1)
 		{
 			USplineMeshComponent* const SplineMeshComponent = Cast<USplineMeshComponent>(AddComponentByClass(USplineMeshComponent::StaticClass(), true, FTransform::Identity, false));
@@ -225,7 +226,7 @@ void ASnakeBodySplineManager::AddSplinePointWorldSpace(const FVector& InLocation
 				}
 				SnakeBodySplineMeshComponentsList.Add(SplineMeshComponent);
 			}
-		}
+		}*/
 	}
 }
 
