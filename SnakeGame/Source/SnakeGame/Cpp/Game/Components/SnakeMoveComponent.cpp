@@ -59,7 +59,9 @@ AController* USnakeMoveComponent::GetOwningController() const
 void USnakeMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	
+
+	TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("SnakeMoveComp"));
+
 	if (ensure(GetOwner()))
 	{
 		const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
