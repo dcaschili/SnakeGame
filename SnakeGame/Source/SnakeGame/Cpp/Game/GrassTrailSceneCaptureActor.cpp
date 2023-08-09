@@ -17,8 +17,7 @@ AGrassTrailSceneCaptureActor::AGrassTrailSceneCaptureActor()
 	PrimaryActorTick.bCanEverTick = false;
 	PrimaryActorTick.bStartWithTickEnabled = false;
 
-	SceneCaptureComponent2D = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SceneCaptureComponent"));
-	
+	SceneCaptureComponent2D = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SceneCaptureComponent"));	
 }
 
 void AGrassTrailSceneCaptureActor::BeginPlay()
@@ -49,7 +48,8 @@ void AGrassTrailSceneCaptureActor::BeginPlay()
 		SceneCaptureComponent2D->TextureTarget = TextureTarget;
 		SceneCaptureComponent2D->CompositeMode = ESceneCaptureCompositeMode::SCCM_Additive;
 		SceneCaptureComponent2D->ProfilingEventName = TEXT("GrassTrail_SceneCapture");
-		SceneCaptureComponent2D->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_RenderScenePrimitives;
+		SceneCaptureComponent2D->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_LegacySceneCapture;	
+		
 
 		// Exclude actors from capture
 		TArray<AActor*> ToHideActors{};
