@@ -48,6 +48,8 @@ void ASnakeBodyPart::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
+	TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("SnakeBodyPart"));
+
 	if (SnakeBodyPartCollider)
 	{
 		const bool bShowColliders = CVarShowSnakeBodyColliders.GetValueOnGameThread();

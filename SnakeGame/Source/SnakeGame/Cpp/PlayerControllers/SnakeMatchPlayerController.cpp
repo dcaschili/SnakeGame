@@ -143,6 +143,8 @@ void ASnakeMatchPlayerController::HandleStartMatchAction(const FInputActionInsta
 {
 	GDTUI_LOG(SnakeLogCategoryGame, Log, TEXT("Start match requested!"));
 
+	TRACE_BOOKMARK(TEXT("Start match"));
+
 	ULocalPlayer* const LP = GetLocalPlayer();
 	UEnhancedInputLocalPlayerSubsystem* const EnhancedInputSubsystem = LP ? LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() : nullptr;
 	if (EnhancedInputSubsystem)
