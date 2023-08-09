@@ -48,7 +48,8 @@ void AGrassTrailSceneCaptureActor::BeginPlay()
 		SceneCaptureComponent2D->OrthoWidth = GameConstants->GetMapSideSize();
 		SceneCaptureComponent2D->TextureTarget = TextureTarget;
 		SceneCaptureComponent2D->CompositeMode = ESceneCaptureCompositeMode::SCCM_Additive;
-
+		SceneCaptureComponent2D->ProfilingEventName = TEXT("GrassTrail_SceneCapture");
+		SceneCaptureComponent2D->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_RenderScenePrimitives;
 
 		// Exclude actors from capture
 		TArray<AActor*> ToHideActors{};
