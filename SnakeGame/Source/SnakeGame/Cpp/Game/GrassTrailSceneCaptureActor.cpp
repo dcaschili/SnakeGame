@@ -6,6 +6,7 @@
 #include "InstancedFoliageActor.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetRenderingLibrary.h"
+#include "Data/GameConstants.h"
 
 #if !UE_BUILD_SHIPPING
 #include "Engine.h"
@@ -24,10 +25,7 @@ void AGrassTrailSceneCaptureActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (ensure(TextureTarget))
-	{
-		UKismetRenderingLibrary::ClearRenderTarget2D(this, TextureTarget, FLinearColor{ 0.0f, 0.0f, 0.0f, 0.0f });
-	}
+	ClearRenderTarget();
 
 	if (SceneCaptureComponent2D)
 	{
@@ -71,4 +69,27 @@ void AGrassTrailSceneCaptureActor::BeginPlay()
 void AGrassTrailSceneCaptureActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
+
+	ClearRenderTarget();
+}
+
+void AGrassTrailSceneCaptureActor::ClearRenderTarget()
+{
+	const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
+	if (!GameConstants)
+	{
+		GDTUI_PRINT_TO_SCREEN_ERROR(TEXT("Missing game constants!"));
+		ensure(false);
+		return;
+	}
+
+	if (TextureTarget)
+	{
+		UKismetRenderingLibrary::ClearRenderTarget2D(this, TextureTarget, GameConstants->GrassTrailClearColor);
+	}
+	else
+	{
+		GDTUI_PRINT_TO_SCREEN_ERROR(TEXT("Missing render target reference in trail capture actor!"));
+		ensure(false);
+	}
 }

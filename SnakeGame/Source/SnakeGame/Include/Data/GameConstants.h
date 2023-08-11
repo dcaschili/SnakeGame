@@ -60,7 +60,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Collectibles", meta = (ClampMin = 1))
 	int32 BaseCollectibleScore = 10;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Sanek|GrassTrail")
-	FName GrassFloorTag = FName("GrassFloorTag");
+	/*
+		GRASS TRAIL
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|GrassTrail")
+	FLinearColor GrassTrailClearColor = FLinearColor{ 0.5, 0.5, 0.0, 1.0 };
 
 };

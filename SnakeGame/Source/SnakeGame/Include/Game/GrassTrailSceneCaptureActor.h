@@ -20,10 +20,12 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
+	void ClearRenderTarget();
+
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|GrassTrail")
 	TObjectPtr<UTextureRenderTarget2D> TextureTarget{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|GrassTrail")
 	TObjectPtr<USceneCaptureComponent2D> SceneCaptureComponent2D{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|GrassTrail")
-	FName GrassTrailEntitiesTag = TEXT("GrassTrail");
+	FName GrassTrailEntitiesTag = TEXT("GrassTrail");	
 };
