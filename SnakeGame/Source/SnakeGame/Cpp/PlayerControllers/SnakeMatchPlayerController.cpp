@@ -18,7 +18,6 @@
 #include "Game/Snake/SnakePawn.h"
 #include "SnakeGameLocalPlayer.h"
 #include "Data/GameConstants.h"
-#include "Game/GrassTrailManagerActor.h"
 
 #include "Engine.h"
 
@@ -105,12 +104,6 @@ void ASnakeMatchPlayerController::BeginPlay()
 		SnakeMatchGameMode->OnStartMatch.AddUniqueDynamic(this, &ThisClass::HandleStartMatchDelegate);
 	}
 	
-
-	// Instantiate grass trail manager
-	if(GrassTrailManagerClass && GetWorld())
-	{
-		GrassTrailManagerActor = GetWorld()->SpawnActor<AGrassTrailManagerActor>(GrassTrailManagerClass);
-	}
 }
 
 void ASnakeMatchPlayerController::SetupInputComponent()

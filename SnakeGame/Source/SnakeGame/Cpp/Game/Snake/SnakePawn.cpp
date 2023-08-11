@@ -17,6 +17,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Game/ChangeDirectionAction.h"
+#include "Game/GrassTrailSceneCaptureActor.h"
 
 
 ASnakePawn::ASnakePawn()
@@ -44,11 +45,16 @@ ASnakePawn::ASnakePawn()
 
 	SnakeBodyRibbonSystemComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SnakeBodyRibbonSystemComponent"));
 	SnakeBodyRibbonSystemComponent->SetupAttachment(RootComponent);
+
+	SnakeTrailNiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SnakeTrailNiagaraComponent"));
+	SnakeTrailNiagaraComponent->SetupAttachment(RootComponent);	
 }
 
 void ASnakePawn::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+
+	if (!NewController) return;
 
 	// Spawn initial body part spawner
 	if (ensure(SnakeBodyPartSpawnerClass))
@@ -73,6 +79,14 @@ void ASnakePawn::PossessedBy(AController* NewController)
 		GDTUI_PRINT_TO_SCREEN_ERROR(TEXT("Missing Snake body part spawner class!"));
 		ensure(false);
 	}
+
+	SpawnTrailCaptureActor();
+
+	/*
+		This is needed so that the bOwnerNoSee in the Niagara trail particle
+		system works for this pawn.	
+	*/
+	SetOwner(NewController->GetViewTarget());	
 }
 
 const ASnakeBodyPart* ASnakePawn::GetSnakeBodyPartAtIndex(int32 InBodyPartIndex) const
@@ -300,6 +314,48 @@ void ASnakePawn::PerformChangeDir(const FVector& InNewDir)
 		SnakeMovementComponent->AddChangeDirAction(ChangeDirAction);
 
 		OnChangeDirection.Broadcast(ChangeDirAction);
+	}
+}
+
+void ASnakePawn::SpawnTrailCaptureActor()
+{
+	if (TrailCaptureActorTag.IsNone())
+	{
+		GDTUI_PRINT_TO_SCREEN_ERROR(TEXT("Missing tag to get trail capture actor transform!"));
+		ensure(false);
+		return;
+	}
+
+	if (TrailCaptureActorClass)
+	{
+
+		TArray<AActor*> FoundActors{};
+		UGameplayStatics::GetAllActorsWithTag(this, TrailCaptureActorTag, FoundActors);
+
+		if (FoundActors.IsEmpty())
+		{
+			GDTUI_PRINT_TO_SCREEN_ERROR(TEXT("Missing actor with tag %s. It is needed to spawn trail capture actor!"), *TrailCaptureActorTag.ToString());
+			ensure(false);
+			return;
+		}
+
+		if (FoundActors.Num() > 1)
+		{
+			GDTUI_PRINT_TO_SCREEN_WARN(TEXT("Found more than one actor with tag: %s. Just the first one will be used!"), *TrailCaptureActorTag.ToString());
+		}
+
+		if (AActor* const Actor = FoundActors[0])
+		{
+			if (UWorld* const World = GetWorld())
+			{
+				GrassTrailCaptureActor = World->SpawnActor<AGrassTrailSceneCaptureActor>(TrailCaptureActorClass, Actor->GetTransform());
+			}
+		}
+	}
+	else
+	{
+		GDTUI_PRINT_TO_SCREEN_ERROR(TEXT("Missing trail capture actor class!"));
+		ensure(false);
 	}
 }
 

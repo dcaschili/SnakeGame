@@ -45,30 +45,25 @@ void AGrassTrailSceneCaptureActor::BeginPlay()
 
 		SceneCaptureComponent2D->ProjectionType = ECameraProjectionMode::Type::Orthographic;
 		SceneCaptureComponent2D->OrthoWidth = GameConstants->GetMapSideSize();
-		SceneCaptureComponent2D->TextureTarget = TextureTarget;
-		SceneCaptureComponent2D->CompositeMode = ESceneCaptureCompositeMode::SCCM_Additive;
-		SceneCaptureComponent2D->ProfilingEventName = TEXT("GrassTrail_SceneCapture");
-		SceneCaptureComponent2D->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_LegacySceneCapture;	
-		
+		SceneCaptureComponent2D->TextureTarget = TextureTarget;		
+		SceneCaptureComponent2D->CompositeMode = ESceneCaptureCompositeMode::SCCM_Overwrite;
+		SceneCaptureComponent2D->ProfilingEventName = TEXT("GrassTrail_SceneCapture");		
+		SceneCaptureComponent2D->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;	
+				
+		TArray<AActor*> GrassTrailEntities{};
+		UGameplayStatics::GetAllActorsWithTag(this, GrassTrailEntitiesTag, GrassTrailEntities);
+		for (AActor* const Actor : GrassTrailEntities)
+		{
+			if (!Actor) continue;
 
-		// Exclude actors from capture
-		TArray<AActor*> ToHideActors{};
-		UGameplayStatics::GetAllActorsOfClass(this, AInstancedFoliageActor::StaticClass(), ToHideActors);
-		for (AActor* const Actor : ToHideActors)
-		{
-			SceneCaptureComponent2D->HiddenActors.AddUnique(Actor);
-		}
-
-		ToHideActors.Empty();
-		UGameplayStatics::GetAllActorsWithTag(this, GameConstants->GrassFloorTag, ToHideActors);
-		if (ToHideActors.IsEmpty())
-		{
-			GDTUI_SHORT_LOG(SnakeLogCategoryGame, Warning, TEXT("Missing floor tag in mesh, the scene capture component may not work!"));
-			ensure(false);
-		}
-		for (AActor* const Actor : ToHideActors)
-		{
-			SceneCaptureComponent2D->HiddenActors.AddUnique(Actor);
+			TArray<UActorComponent*> PrimitiveComponents = Actor->GetComponentsByTag(UPrimitiveComponent::StaticClass(), GrassTrailEntitiesTag);
+			for (UActorComponent* const ActorComponent : PrimitiveComponents)
+			{
+				if (UPrimitiveComponent* const PrimitiveComp = Cast<UPrimitiveComponent>(ActorComponent))
+				{
+					SceneCaptureComponent2D->ShowOnlyComponents.AddUnique(PrimitiveComp);
+				}
+			}
 		}
 	}
 }

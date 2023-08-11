@@ -24,4 +24,6 @@ private:
 	TObjectPtr<UTextureRenderTarget2D> TextureTarget{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|GrassTrail")
 	TObjectPtr<USceneCaptureComponent2D> SceneCaptureComponent2D{};
+	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|GrassTrail")
+	FName GrassTrailEntitiesTag = TEXT("GrassTrail");
 };

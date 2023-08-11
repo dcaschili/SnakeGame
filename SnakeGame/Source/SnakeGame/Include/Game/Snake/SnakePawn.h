@@ -17,6 +17,7 @@ class USnakeChangeDirectionAudioComponent;
 class UMapOccupancyComponent;
 class UNiagaraComponent;
 class UNiagaraParameterCollection;
+class AGrassTrailSceneCaptureActor;
 struct FChangeDirectionAction;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeDirectionDelegate, const FChangeDirectionAction&, NewDirectionAction);
@@ -68,6 +69,7 @@ private:
 	FVector GenerateChangeDirectionActionLocation() const;
 	void	PerformChangeDir(const FVector& InNewDir);
 
+	void SpawnTrailCaptureActor();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UEndGameOverlapDetectionComponent> EndGameOverlapComponent{};
@@ -79,6 +81,17 @@ private:
 	TObjectPtr<USnakeMoveComponent> SnakeMovementComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<USnakeChangeDirectionAudioComponent> SnakeChangeDirectionAudioComponent{};	
+
+	/*
+		TRAIL
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = "Sanke|Trail")
+	TSubclassOf<AGrassTrailSceneCaptureActor> TrailCaptureActorClass{};
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Trail")
+	FName TrailCaptureActorTag = TEXT("TrailCaptureTransform");
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Trail")
+	TObjectPtr<UNiagaraComponent> SnakeTrailNiagaraComponent{};
+
 	/*
 		PARTICLE SYSTEM - BODY
 	*/
@@ -102,8 +115,11 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess=true))
 	ESnakeBodyPartType BodyPartType{};
 
+
 	UPROPERTY()
 	TArray<ASnakeBodyPart*> SnakeBody{};
+	UPROPERTY()
+	TObjectPtr<AGrassTrailSceneCaptureActor> GrassTrailCaptureActor{};
 	
 	int32 TileSize = 0;
 	int32 HalfTileSize = 0;
