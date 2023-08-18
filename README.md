@@ -1,7 +1,8 @@
 # SnakeGame
 Simple snake clone made in Unreal.
 
-# CVar
+# Debug
+## CVar
 - **Snake.EnableOccupancyDebug**
   - true: draw boxes on the map to visualize the occupancy and some map information.
     - Green: Free
@@ -12,6 +13,12 @@ Simple snake clone made in Unreal.
 - **Snake.ShowSnakeBodyColliders**
   - true: show box colliders on snake body parts (it calls SetHiddenInGame(true)).
   - false: hide box colliders
+
+## Shader
+- **MPC_Debug** (material param collection)
+  - **EnableGrassBendingDebugColors**:
+    - 0 -> Show standard color (default)
+    - 1 -> Enable bending grass color (red == bending/ green == no bending)
 
 # Assets
 - https://www.kenney.nl/assets/food-kit
