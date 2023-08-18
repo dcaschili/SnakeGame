@@ -265,7 +265,7 @@ void ASnakeMatchPlayerController::InnerHandleEndMatch()
 						{
 							ScoreDataModel->BestScore = SnakeGameLocalPlayer->GetBestScore();
 							ScoreDataModel->CurrentScore = FMath::RoundToInt(PlayerState->GetScore());
-							ScoreDataModel->bIsBestScore = ScoreDataModel->BestScore < ScoreDataModel->CurrentScore;
+							ScoreDataModel->bIsBestScore = (ScoreDataModel->CurrentScore > 0) && (ScoreDataModel->BestScore < ScoreDataModel->CurrentScore);
 
 							if (ScoreDataModel->bIsBestScore)
 							{
