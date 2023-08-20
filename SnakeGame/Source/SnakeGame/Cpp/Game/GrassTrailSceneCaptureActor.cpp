@@ -18,7 +18,8 @@ AGrassTrailSceneCaptureActor::AGrassTrailSceneCaptureActor()
 	PrimaryActorTick.bCanEverTick = false;
 	PrimaryActorTick.bStartWithTickEnabled = false;
 
-	SceneCaptureComponent2D = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SceneCaptureComponent"));	
+	SceneCaptureComponent2D = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SceneCaptureComponent"));
+	RootComponent = SceneCaptureComponent2D;
 }
 
 void AGrassTrailSceneCaptureActor::BeginPlay()
