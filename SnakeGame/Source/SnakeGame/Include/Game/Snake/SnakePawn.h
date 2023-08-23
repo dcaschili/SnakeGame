@@ -111,7 +111,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Body", meta=(ClampMin=1, UIMin=1))
 	int32 InitialBodyPartsCount = 3;
 
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess=true))
 	ESnakeBodyPartType BodyPartType{};
 
@@ -119,9 +118,5 @@ private:
 	UPROPERTY()
 	TArray<ASnakeBodyPart*> SnakeBody{};
 	UPROPERTY()
-	TObjectPtr<AGrassTrailSceneCaptureActor> GrassTrailCaptureActor{};
-	
-	int32 TileSize = 0;
-	int32 HalfTileSize = 0;
-	float DistanceFromTileCenterTolerance = 0.0f;	
+	TObjectPtr<AGrassTrailSceneCaptureActor> GrassTrailCaptureActor{};		
 };
