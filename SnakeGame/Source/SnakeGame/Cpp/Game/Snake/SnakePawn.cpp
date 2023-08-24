@@ -18,6 +18,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Game/ChangeDirectionAction.h"
 #include "Game/GrassTrailSceneCaptureActor.h"
+#include "Components/SphereComponent.h"
 
 
 ASnakePawn::ASnakePawn()
@@ -28,11 +29,14 @@ ASnakePawn::ASnakePawn()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 
+	SphereComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
+	RootComponent = SphereComp;
+	SphereComp->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
+	SphereComp->SetGenerateOverlapEvents(true);
+
 	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComp"));
-	RootComponent = StaticMeshComp;
-	StaticMeshComp->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
+	StaticMeshComp->SetupAttachment(RootComponent);
 	StaticMeshComp->CastShadow = false;
-	StaticMeshComp->SetGenerateOverlapEvents(true);
 	
 	SnakeMovementComponent = CreateDefaultSubobject<USnakeMoveComponent>(TEXT("SnakeMovementComponent"));
 	SnakeChangeDirectionAudioComponent = CreateDefaultSubobject<USnakeChangeDirectionAudioComponent>(TEXT("SnakeChangeDirectionAudioComponent"));

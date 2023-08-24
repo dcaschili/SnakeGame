@@ -17,6 +17,7 @@ class USnakeChangeDirectionAudioComponent;
 class UMapOccupancyComponent;
 class UNiagaraComponent;
 class UNiagaraParameterCollection;
+class USphereComponent;
 class AGrassTrailSceneCaptureActor;
 struct FChangeDirectionAction;
 
@@ -76,7 +77,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<UMapOccupancyComponent> MapOccupancyComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
-	TObjectPtr<UStaticMeshComponent> StaticMeshComp{};	
+	TObjectPtr<UStaticMeshComponent> StaticMeshComp{};
+	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
+	TObjectPtr<USphereComponent> SphereComp{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")
 	TObjectPtr<USnakeMoveComponent> SnakeMovementComponent{};
 	UPROPERTY(EditDefaultsOnly, Category = "Snake|Components")

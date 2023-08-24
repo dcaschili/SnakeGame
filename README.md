@@ -25,6 +25,7 @@ Simple snake clone made in Unreal.
 - https://www.kenney.nl/assets/interface-sounds
 - https://freesound.org/people/unfa/sounds/193438/
 - https://thoseawesomeguys.com/prompts/
+- https://quaternius.com/packs/easyenemy.html
 
 
 - https://www.dafont.com/hack.font?l[]=10
