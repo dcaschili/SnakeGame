@@ -12,6 +12,8 @@ class SNAKEGAME_API USnakeGameInstance : public UGameInstance
     GENERATED_BODY()
 public:
 
+	virtual void Init() override;
+
     const UGameConstants* GetGameConstants() const { return GameConstants; }
 
 private:
