@@ -65,6 +65,15 @@ void AGrassTrailSceneCaptureActor::BeginPlay()
 			}
 		}
 	}
+
+	const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
+	if (!GameConstants)
+	{
+		GDTUI_PRINT_TO_SCREEN_ERROR(TEXT("Missing game constants!"));
+		ensure(false);
+		return;
+	}
+	ClearColor = GameConstants->GrassTrailClearColor;
 }
 
 void AGrassTrailSceneCaptureActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -76,17 +85,11 @@ void AGrassTrailSceneCaptureActor::EndPlay(const EEndPlayReason::Type EndPlayRea
 
 void AGrassTrailSceneCaptureActor::ClearRenderTarget()
 {
-	const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
-	if (!GameConstants)
-	{
-		GDTUI_PRINT_TO_SCREEN_ERROR(TEXT("Missing game constants!"));
-		ensure(false);
-		return;
-	}
+	TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("AGrassTrailSceneCaptureActor::ClearRenderTarget()"));
 
 	if (TextureTarget)
 	{
-		UKismetRenderingLibrary::ClearRenderTarget2D(this, TextureTarget, GameConstants->GrassTrailClearColor);
+		UKismetRenderingLibrary::ClearRenderTarget2D(this, TextureTarget, ClearColor);
 	}
 	else
 	{

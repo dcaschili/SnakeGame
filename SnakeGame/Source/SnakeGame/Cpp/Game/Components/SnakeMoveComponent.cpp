@@ -19,6 +19,14 @@ USnakeMoveComponent::USnakeMoveComponent()
 void USnakeMoveComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
+	if (!GameConstants)
+	{
+		ensure(false);
+		return;
+	}
+	MaxMovementSpeed = GameConstants->MaxMovementSpeed;
 }
 
 void USnakeMoveComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -58,24 +66,17 @@ AController* USnakeMoveComponent::GetOwningController() const
 
 void USnakeMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
 	TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("SnakeMoveComp"));
+
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	if (ensure(GetOwner()))
 	{
-		const UGameConstants* const GameConstants = UGameConstants::GetGameConstants(this);
-		if (!GameConstants)
-		{
-			ensure(false);
-			return;
-		}
-
 		const float CurrentZ = GetOwner()->GetActorLocation().Z;
 		FVector CurrentPos = GetOwner()->GetActorLocation();
 		CurrentPos.Z = 0.f;
 
-		float FrameMovement = GameConstants->MaxMovementSpeed * DeltaTime;
+		float FrameMovement = MaxMovementSpeed * DeltaTime;
 		FVector ResultingPos = CurrentPos + MoveDirection * FrameMovement;
 
 		while (!ChangeDirectionQueue.IsEmpty())

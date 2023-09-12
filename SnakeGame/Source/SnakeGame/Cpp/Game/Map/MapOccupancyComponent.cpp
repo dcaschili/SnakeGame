@@ -39,10 +39,10 @@ void UMapOccupancyComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UMapOccupancyComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("MapOccupancyComponent"));
+	
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
-	TRACE_CPUPROFILER_EVENT_SCOPE_STR(TEXT("MapOccupancyComponent"));
-
 	HandleOccupancyTest();
 }
 

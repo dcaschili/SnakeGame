@@ -28,4 +28,6 @@ private:
 	TObjectPtr<USceneCaptureComponent2D> SceneCaptureComponent2D{};
 	UPROPERTY(EditDefaultsOnly, Category = "SnakeGame|GrassTrail")
 	FName GrassTrailEntitiesTag = TEXT("GrassTrail");	
+
+	FLinearColor ClearColor{};
 };

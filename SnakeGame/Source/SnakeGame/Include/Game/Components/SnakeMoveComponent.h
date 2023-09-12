@@ -38,4 +38,6 @@ private:
 	
 	FVector							MoveDirection = FVector::RightVector;
 	TArray<FChangeDirectionAction>	ChangeDirectionQueue{};
+
+	float MaxMovementSpeed = 0.0f;
 }; 
