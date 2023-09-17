@@ -1,6 +1,8 @@
 #include "UI/Pages/GameOverPage.h"
 
-void UGameOverPage::SetDataModel(UGameDataModel* InModel)
+#include "Data/GDTUIDataModel.h"
+
+void UGameOverPage::SetDataModel(UGDTUIDataModel* InModel)
 {
 	if (InModel)
 	{

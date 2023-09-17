@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Data/Model/GameDataModel.h"
+#include "Data/GDTUIDataModel.h"
 
 #include "PlayerScoreDataModel.generated.h"
 
 class ASnakeGamePlayerState;
 
 UCLASS(BlueprintType)
-class SNAKEGAME_API UPlayerScoreDataModel : public UGameDataModel
+class SNAKEGAME_API UPlayerScoreDataModel : public UGDTUIDataModel
 {
     GENERATED_BODY()
 public:

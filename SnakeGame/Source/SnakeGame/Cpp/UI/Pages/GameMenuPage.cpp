@@ -1,6 +1,8 @@
 #include "UI/Pages/GameMenuPage.h"
 
-void UGameMenuPage::SetDataModel(UGameDataModel* InModel)
+#include "Data/GDTUIDataModel.h"
+
+void UGameMenuPage::SetDataModel(UGDTUIDataModel* InModel)
 {
 	if (InModel)
 	{

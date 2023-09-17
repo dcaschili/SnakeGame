@@ -1,22 +1,24 @@
 #pragma once
 
 #include "Pages/GDTUIUWSimpleButtonListPage.h"
-#include "Data/Model/GameDataModelUserInterface.h"
+#include "Interfaces/GDTUIDataModelInterface.h"
 
 #include "GameMenuPage.generated.h"
 
+class UGDTUIDataModel;
+
 UCLASS()
-class SNAKEGAME_API UGameMenuPage : public UGDTUIUWSimpleButtonListPage, public IGameDataModelUserInterface
+class SNAKEGAME_API UGameMenuPage : public UGDTUIUWSimpleButtonListPage, public IGDTUIDataModelInterface
 {
     GENERATED_BODY()
     
 
 public:
-	// IGameDataModelUserInterface
-	virtual void SetDataModel(UGameDataModel* InModel) override;
-	virtual const UGameDataModel* GetDataModel() const override { return DataModel; }
+	// IGDTUIDataModelInterface
+	virtual void SetDataModel(UGDTUIDataModel* InModel) override;
+	virtual const UGDTUIDataModel* GetDataModel() const override { return DataModel; }
 
 private:
 	UPROPERTY()
-	UGameDataModel* DataModel {};
+	UGDTUIDataModel* DataModel {};
 };

@@ -1,21 +1,21 @@
 #pragma once
 
 #include "Pages/GDTUIUWSimpleButtonListPage.h"
-#include "Data/Model/GameDataModelUserInterface.h"
+#include "Interfaces/GDTUIDataModelInterface.h"
 
 #include "GameOverPage.generated.h"
 
-class UPlayerScoreDataModel;
+class UGDTUIDataModel;
 
 UCLASS()
-class SNAKEGAME_API UGameOverPage : public UGDTUIUWSimpleButtonListPage, public IGameDataModelUserInterface
+class SNAKEGAME_API UGameOverPage : public UGDTUIUWSimpleButtonListPage, public IGDTUIDataModelInterface
 {
     GENERATED_BODY()
 public:
 
-	// Inherited via IGameDataModelUserInterface
-	virtual void SetDataModel(UGameDataModel* InModel) override;
-	virtual const UGameDataModel* GetDataModel() const override { return DataModel; }
+	// Inherited via IGDTUIDataModelInterface
+	virtual void SetDataModel(UGDTUIDataModel* InModel) override;
+	virtual const UGDTUIDataModel* GetDataModel() const override { return DataModel; }
 
 protected:
 	virtual void InnerOnActivated() override;
@@ -23,5 +23,5 @@ protected:
 
 private:
 	UPROPERTY()
-	UGameDataModel* DataModel{};
+	UGDTUIDataModel* DataModel{};
 };

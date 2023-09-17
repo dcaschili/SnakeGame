@@ -1,21 +1,21 @@
 #pragma once
 
 #include "Pages/GDTUIUWBasePage.h"
-#include "Data/Model/GameDataModelUserInterface.h"
+#include "Interfaces/GDTUIDataModelInterface.h"
 
 #include "GameHUDPage.generated.h"
 
-class UGameDataModel;
+class UGDTUIDataModel;
 
 UCLASS()
-class SNAKEGAME_API UGameHUDPage : public UGDTUIUWBasePage, public IGameDataModelUserInterface
+class SNAKEGAME_API UGameHUDPage : public UGDTUIUWBasePage, public IGDTUIDataModelInterface
 {
     GENERATED_BODY()
 
 public:
 	// Inherited via IGameDataModelUserInterface
-	virtual void SetDataModel(UGameDataModel* InModel) override;
-	virtual const UGameDataModel* GetDataModel() const override { return DataModel; }
+	virtual void SetDataModel(UGDTUIDataModel* InModel) override;
+	virtual const UGDTUIDataModel* GetDataModel() const override { return DataModel; }
 
 	void SetHUDConfigurationActive(bool bInIsActive);
 
@@ -28,6 +28,6 @@ private:
 	virtual void InnerOnDeactivated() override;
 
 	UPROPERTY()
-	UGameDataModel* DataModel{};
+	UGDTUIDataModel* DataModel{};
 
 };

@@ -1,8 +1,8 @@
 #include "UI/Pages/GameHUDPage.h"
 
-#include "Data/Model/GameDataModel.h"
+#include "Data/GDTUIDataModel.h"
 
-void UGameHUDPage::SetDataModel(UGameDataModel* InModel)
+void UGameHUDPage::SetDataModel(UGDTUIDataModel* InModel)
 {
 	if (InModel)
 	{

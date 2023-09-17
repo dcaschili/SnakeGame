@@ -7,7 +7,7 @@
 #include "SnakeGameLocalPlayer.h"
 #include "Kismet/GameplayStatics.h"
 #include "Data/PlayerProfileSaveGame.h"
-#include "Data/Model/GameDataModelUserInterface.h"
+#include "Interfaces/GDTUIDataModelInterface.h"
 #include "Data/Model/PlayerScoreDataModel.h"
 
 #include "Engine.h"
@@ -48,7 +48,7 @@ void ASnakeMenuPlayerController::BeginPlay()
 	{
 		if (MenuPageClass)
 		{
-			if (IGameDataModelUserInterface* const Interface = Cast<IGameDataModelUserInterface>(BaseLayoutPage->PushWidget(MenuPageClass, EPageLayoutStackType::Main)))
+			if (IGDTUIDataModelInterface* const Interface = Cast<IGDTUIDataModelInterface>(BaseLayoutPage->PushWidget(MenuPageClass, EPageLayoutStackType::Main)))
 			{
 				UPlayerScoreDataModel* const ScoreDataModel = NewObject<UPlayerScoreDataModel>();
 				ScoreDataModel->BestScore = SnakeGameLocalPlayer ? SnakeGameLocalPlayer->GetBestScore() : -1;
