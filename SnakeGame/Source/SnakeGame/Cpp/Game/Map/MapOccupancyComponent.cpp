@@ -62,9 +62,21 @@ void UMapOccupancyComponent::ForceRefreshOccupancy()
 	UpdateOccupancy();
 }
 
+void UMapOccupancyComponent::EnableOccupancyComponent()
+{
+	bEnableOccupancy = true;
+	ForceRefreshOccupancy();
+}
+
+void UMapOccupancyComponent::DisableOccupancyComponent()
+{
+	ForceFreeOccupancy();
+	bEnableOccupancy = false;
+}
+
 void UMapOccupancyComponent::HandleOccupancyTest()
 {
-	if (IsOccupancyUpdateNeeded())
+	if (IsOccupancyUpdateNeeded() && bEnableOccupancy)
 	{
 		UpdateOccupancy();
 	}
@@ -82,9 +94,7 @@ bool UMapOccupancyComponent::IsOccupancyUpdateNeeded() const
 	{
 		FString Msg = FString::Printf(TEXT("Location: %s is out of map boundaries"), *Owner->GetActorLocation().ToString());
 		UE_LOG(SnakeLogCategoryMap, Error, TEXT("%s"), *Msg);
-#if WITH_EDITOR
-		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, Msg);
-#endif // WITH_EDITOR
+		GDTUI_PRINT_TO_SCREEN_ERROR(Msg);
 		ensure(false);
 		return false;
 	}

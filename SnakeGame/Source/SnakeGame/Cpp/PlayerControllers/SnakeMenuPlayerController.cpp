@@ -95,7 +95,7 @@ void ASnakeMenuPlayerController::UnbindEvents()
 
 void ASnakeMenuPlayerController::HandleButtonClicked(const FName& InButtonId)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, *FString::Printf(TEXT("Button clicked: %s"), *InButtonId.ToString()));
+	GDTUI_PRINT_TO_SCREEN_LOG(TEXT("Button clicked: %s"), *InButtonId.ToString());
 	if (EMenuAction* Action = ButtonIdToMenuAction.Find(InButtonId))
 	{
 		switch (*Action)
@@ -113,7 +113,7 @@ void ASnakeMenuPlayerController::HandleButtonClicked(const FName& InButtonId)
 	else
 	{
 		FString Msg = FString::Printf(TEXT("Missing menu action for button: %s"), *InButtonId.ToString());
-		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, *Msg);
+		GDTUI_PRINT_TO_SCREEN_ERROR(Msg);
 		GDTUI_LOG(SnakeLogCategoryUI, Error, TEXT("%s"), *Msg);
 		ensure(false);
 	}

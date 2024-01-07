@@ -75,7 +75,7 @@ void ASnakeGamePlayerController::SetupBaseLayout()
 	{
 		if (!LayoutPageClassOverride)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, TEXT("ERROR: wrong base layout page configuration."));
+			GDTUI_PRINT_TO_SCREEN_ERROR(TEXT("ERROR: wrong base layout page configuration."));			
 			GDTUI_LOG(SnakeLogCategoryUI, Error, TEXT("Layout override requested but missing layout class in configuration!"));
 			ensure(false);
 			return;

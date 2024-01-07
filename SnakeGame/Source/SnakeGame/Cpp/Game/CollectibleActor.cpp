@@ -30,7 +30,7 @@ void ACollectibleActor::EnableCollectible()
 
 	if (ensure(MapOccupancyComponent))
 	{
-		MapOccupancyComponent->ForceRefreshOccupancy();
+		MapOccupancyComponent->EnableOccupancyComponent();
 	}
 }
 
@@ -45,7 +45,7 @@ void ACollectibleActor::DisableCollectible()
 
 	if (ensure(MapOccupancyComponent))
 	{
-		MapOccupancyComponent->ForceFreeOccupancy();
+		MapOccupancyComponent->DisableOccupancyComponent();
 	}
 }
 

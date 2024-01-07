@@ -42,9 +42,7 @@ void UEndGameOverlapDetectionComponent::HandleBeginOverlap(AActor* OverlappedAct
 	{
 		if (Interface->ShouldTriggerEndGame())
 		{
-#if !UE_BUILD_SHIPPING
-			if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("EndGame overlap detected!"));
-#endif // !UE_BUILD_SHIPPING
+			GDTUI_PRINT_TO_SCREEN_LOG(TEXT("EndGame overlap detected!"));
 			GDTUI_SHORT_LOG(SnakeLogCategoryGame, Log, TEXT("EndGame overlap detected!"));
 
 			// Trigger endgame on the game mode

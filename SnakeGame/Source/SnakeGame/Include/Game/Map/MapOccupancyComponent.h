@@ -18,9 +18,12 @@ public:
 	void SetEnableContinuousTileOccupancyTest(bool bEnabled) { bEnableContinuousTileOccupancyTest = bEnabled; }
 
 	void ForceFreeOccupancy();
-	void ForceRefreshOccupancy();
+	
+	void EnableOccupancyComponent();
+	void DisableOccupancyComponent();
 
 private: 
+	void ForceRefreshOccupancy();
 	void HandleOccupancyTest();
 
 	bool IsOccupancyUpdateNeeded() const;
@@ -32,4 +35,5 @@ private:
 	TOptional<FIntVector2> PreviousMapTileLocation{};
 
 	FTimerHandle OccupacyTestTimerHandle{};
+	bool bEnableOccupancy = true;
 };

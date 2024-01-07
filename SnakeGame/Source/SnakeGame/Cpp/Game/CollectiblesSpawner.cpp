@@ -82,7 +82,8 @@ void ACollectiblesSpawner::HandleCollectibleCollected(const FVector& InCollectib
 				ACollectibleActor* const ToDisableCollectible = CollectibleActorsPoll.IsValidIndex(ActiveCollectible.GetValue()) ? CollectibleActorsPoll[ActiveCollectible.GetValue()] : nullptr;
 				if (ToDisableCollectible)
 				{
-					ToDisableCollectible->SetActorLocation(OutOfMapLocation);						
+					ToDisableCollectible->DisableCollectible();
+					ToDisableCollectible->SetActorLocation(OutOfMapLocation);	
 				}
 				
 				// Activate the new collectible
@@ -90,8 +91,8 @@ void ACollectiblesSpawner::HandleCollectibleCollected(const FVector& InCollectib
 				ACollectibleActor* const ToSpawnCollectible = CollectibleActorsPoll.IsValidIndex(ActiveCollectible.GetValue()) ? CollectibleActorsPoll[ActiveCollectible.GetValue()] : nullptr;
 				if (ToSpawnCollectible)
 				{
-					ToSpawnCollectible->EnableCollectible();
 					ToSpawnCollectible->SetActorLocation(SpawnLocation, false);
+					ToSpawnCollectible->EnableCollectible();
 				}
 			}
 		}
@@ -159,10 +160,12 @@ void ACollectiblesSpawner::SpawnCollectible()
 				
 				// Start by the first in the array
 				ActiveCollectible = 0;
-
+				check(!CollectibleActorsPoll.IsEmpty());
 				ACollectibleActor* const CollectibleActor = CollectibleActorsPoll[ActiveCollectible.GetValue()];
-				CollectibleActor->EnableCollectible();
+				check(CollectibleActor);
+
 				CollectibleActor->SetActorLocation(SpawnLocation, false);
+				CollectibleActor->EnableCollectible();
 
 				CollectibleActor->OnCollectedActor.AddUniqueDynamic(this, &ThisClass::HandleCollectibleCollected);
 
