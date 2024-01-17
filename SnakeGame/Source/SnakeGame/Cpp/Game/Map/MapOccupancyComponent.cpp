@@ -92,9 +92,9 @@ bool UMapOccupancyComponent::IsOccupancyUpdateNeeded() const
 	
 	if (!bMapLocationExists)
 	{
-		FString Msg = FString::Printf(TEXT("Location: %s is out of map boundaries"), *Owner->GetActorLocation().ToString());
+		const FString Msg = FString::Printf(TEXT("Location: %s is out of map boundaries"), *Owner->GetActorLocation().ToString());
 		UE_LOG(SnakeLogCategoryMap, Error, TEXT("%s"), *Msg);
-		GDTUI_PRINT_TO_SCREEN_ERROR(Msg);
+		GDTUI_PRINT_TO_SCREEN_ERROR(TEXT("%s"), *Msg);
 		ensure(false);
 		return false;
 	}

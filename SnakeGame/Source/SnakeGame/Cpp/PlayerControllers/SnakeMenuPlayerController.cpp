@@ -112,8 +112,8 @@ void ASnakeMenuPlayerController::HandleButtonClicked(const FName& InButtonId)
 	}
 	else
 	{
-		FString Msg = FString::Printf(TEXT("Missing menu action for button: %s"), *InButtonId.ToString());
-		GDTUI_PRINT_TO_SCREEN_ERROR(Msg);
+		const FString Msg = FString::Printf(TEXT("Missing menu action for button: %s"), *InButtonId.ToString());
+		GDTUI_PRINT_TO_SCREEN_ERROR(TEXT("%s"), *Msg);
 		GDTUI_LOG(SnakeLogCategoryUI, Error, TEXT("%s"), *Msg);
 		ensure(false);
 	}
