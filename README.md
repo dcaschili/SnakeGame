@@ -1,5 +1,10 @@
 # SnakeGame
 Simple snake clone made in Unreal. This repository doesn't contain the assets I used, just the code.
+Downloading the source zip file doesn't include the submodule, therefore it won't compile. 
+To clone the repository use:
+```
+git clone --recurse-submodules https://github.com/dcaschili/SnakeGame.git
+```
 
 # Debug
 ## CVar
