@@ -18,9 +18,3 @@ git clone --recurse-submodules https://github.com/dcaschili/SnakeGame.git
 - **Snake.ShowSnakeBodyColliders**
   - true: show box colliders on snake body parts (it calls SetHiddenInGame(true)).
   - false: hide box colliders
-
-## Shader
-- **MPC_Debug** (material param collection)
-  - **EnableGrassBendingDebugColors**:
-    - 0 -> Show standard color (default)
-    - 1 -> Enable bending grass color (red == bending/ green == no bending)
