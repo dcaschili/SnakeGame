@@ -1,5 +1,5 @@
 # SnakeGame
-Simple snake clone made in Unreal.
+Simple snake clone made in Unreal. This repository doesn't contain the assets I used, just the code.
 
 # Debug
 ## CVar
